@@ -1,4 +1,5 @@
 ﻿using CardRPG.Entities.Gameplay;
+using CardRPG.Entities.Users;
 using System.Threading.Tasks;
 
 namespace CardRPG.UseCases
@@ -7,7 +8,9 @@ namespace CardRPG.UseCases
     {
         public async Task<GetGameStateQueryOut> Handle(GetGameStateQuery query)
         {
-            return new(StartRandomGameCommandHandler.Game);
+            return new(
+                StartRandomGameCommandHandler.Player.Id,
+                StartRandomGameCommandHandler.Game);
         }
     }
 
@@ -17,11 +20,15 @@ namespace CardRPG.UseCases
 
     public class GetGameStateQueryOut
     {
-        public GetGameStateQueryOut(Game game)
+        public GetGameStateQueryOut(
+            UserId playerId,
+            Game game)
         {
+            PlayerId = playerId;
             Game = game;
         }
 
+        public UserId PlayerId { get; }
         public Game Game { get; }
     }
 }

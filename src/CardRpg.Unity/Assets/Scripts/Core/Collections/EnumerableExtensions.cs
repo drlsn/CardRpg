@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Core.Collections
@@ -7,5 +8,53 @@ namespace Core.Collections
     {
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> enumerable) =>
             enumerable is null || enumerable.Count() <= 0;
+
+        public static void ForEach(this int index, Action action)
+        {
+            index = System.Math.Abs(index);
+            for (int i = 0; i < index; i++)
+                action();
+        }
+
+        public static void ForEach(this int index, Action<int> action)
+        {
+            index = System.Math.Abs(index);
+            for (int i = 0; i < index; i++)
+                action(i);
+        }
+
+        public static void ForEachEnd<T>(this IEnumerable<T> enumerable, Action<T> itemAction)
+        {
+            foreach (var item in enumerable)
+            {
+                if (item != null)
+                    itemAction(item);
+            }
+        }
+
+        public static IEnumerable<T> ForEach<T>(this IEnumerable<T> enumerable, Action<T> itemAction)
+        {
+            foreach (var item in enumerable)
+            {
+                if (item != null)
+                    itemAction(item);
+            }
+
+            return enumerable;
+        }
+
+        public static IEnumerable<T> ForEach<T>(this IEnumerable<T> enumerable, Action<T, int> itemAction)
+        {
+            int i = 0;
+            foreach (var item in enumerable)
+            {
+                if (item != null)
+                    itemAction(item, i);
+
+                i++;
+            }
+
+            return enumerable;
+        }
     }
 }

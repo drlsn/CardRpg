@@ -274,6 +274,7 @@ src/CardRpg.Unity/[Mm]emoryCaptures/
 
 # Never ignore Asset meta data
 !/src/CardRpg.Unity/[Aa]ssets/**/*.meta
+!/src/CardRpg.Unity/[Pp]ackages/**
 
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*

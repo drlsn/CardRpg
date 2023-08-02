@@ -18,12 +18,14 @@ namespace CardRPG.UseCases
         }
 
         public static Card Zawisza = new Card(
+            new CardId("Zawisza"),
             "Zawisza Czarny",
             new StatisticPointGroup(
                 hp: new StatisticPoint(10),
                 attack: new StatisticPoint(4)));
 
         public static Card Ulryk = new Card(
+            new CardId("Ulryk"),
             "Ulryk Von Jungingen",
             new StatisticPointGroup(
                 hp: new StatisticPoint(10),

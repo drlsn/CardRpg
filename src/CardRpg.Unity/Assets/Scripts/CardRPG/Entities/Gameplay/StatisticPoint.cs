@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using Core.Collections;
 using System.Collections.Generic;
 
 namespace CardRPG.Entities.Gameplay

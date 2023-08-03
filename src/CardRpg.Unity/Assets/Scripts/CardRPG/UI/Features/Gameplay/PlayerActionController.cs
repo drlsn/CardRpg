@@ -42,7 +42,7 @@ namespace CardRPG.UI.Gameplay
                 var dto = await new GetGameStateQueryHandler().Handle(new GetGameStateQuery());
                 GameObject.FindAnyObjectByType<Board>().Rebuild(dto);
 
-                GameObject.FindAnyObjectByType<PopupController>().Show($"Player attacked");
+                GameObject.FindAnyObjectByType<MessagesController>().Show($"Player attacked");
             }
 
             _lastSelectedCard = card;

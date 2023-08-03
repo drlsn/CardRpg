@@ -1,4 +1,5 @@
 ﻿using CardRPG.Entities.Users;
+using Core.Basic;
 using System;
 using System.Linq;
 using UnityEngine.LowLevel;
@@ -48,29 +49,39 @@ namespace CardRPG.Entities.Gameplay
             return true;
         }
 
-        public bool TryPerformTurn(UserId playerId, Func<Player, bool> action)
+        public Result<IDomainEvent[]> TryPerformTurn(UserId playerId, Func<Player, Result<IDomainEvent[]>> action)
         {
             if (!CanDo(playerId))
                 return false;
 
             var player = Players.OfId(playerId);
-            if (!action(player))
-                return false;
 
-            return SetActionDone(playerId);
+            var result = action(player);
+            if (!result.IsSuccess)
+                return result;
+
+           if (!SetActionDone(playerId))
+                return result.Fail();
+
+            return result;
         }
 
-        public bool TryPerformTurn(UserId playerId, Func<Player, Player, bool> action)
+        public Result<IDomainEvent[]> TryPerformTurn(UserId playerId, Func<Player, Player, Result<IDomainEvent[]>> action)
         {
             if (!CanDo(playerId))
                 return false;
 
             var thisPlayer = Players.OfId(playerId);
             var otherPlayer = Players.NotOfId(playerId);
-            if (!action(thisPlayer, otherPlayer))
-                return false;
 
-            return SetActionDone(playerId);
+            var result = action(thisPlayer, otherPlayer);
+            if (!result.IsSuccess)
+                return result;
+
+            if (!SetActionDone(playerId))
+                return result.Fail();
+
+            return result;
         }
     }
 }

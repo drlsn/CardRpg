@@ -30,17 +30,22 @@ namespace CardRPG.Entities.Gameplay
             }
         }
 
-        public void ModifyClamped(double value)
+        public void ModifyClamped(double value, out double clampedValue)
         {
+            clampedValue = value;
+
             var newValue = CalculatedValue + value;
             if (newValue < 0)
-                value -= newValue;
+                clampedValue -= newValue;
 
-            if (value == 0)
+            if (clampedValue == 0)
                 return;
 
-            Modifiers.Add(new(value));
+            Modifiers.Add(new(clampedValue));
         }
+
+        public void ModifyClamped(double value) =>
+            ModifyClamped(value, out var clampedValue);
 
         public void Modify(double value, bool isFactor = false) =>
             Modifiers.Add(new(value, isFactor));

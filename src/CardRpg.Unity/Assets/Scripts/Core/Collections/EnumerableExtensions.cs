@@ -56,5 +56,24 @@ namespace Core.Collections
 
             return enumerable;
         }
+
+        public static T AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> aggregator)
+        {
+            if (source.IsNullOrEmpty())
+                return default;
+
+            if (source.Count() == 1)
+                return source.First();
+
+            return source.Aggregate(aggregator);
+        }
+
+        public static T AggregateOrEmpty<T>(this IEnumerable<T> source, Func<T, T, T> aggregator, T empty)
+        {
+            if (source.IsNullOrEmpty())
+                return empty;
+
+            return source.AggregateOrDefault(aggregator);
+        }
     }
 }

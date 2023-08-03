@@ -1,5 +1,4 @@
-﻿using CardRPG.Entities.Users;
-using CardRPG.UseCases;
+﻿using CardRPG.UseCases;
 using Core.Collections;
 using Core.Unity.Popups;
 using UnityEngine;
@@ -16,6 +15,13 @@ namespace CardRPG.UI.Gameplay
 
         private Entities.Gameplay.Card _lastSelectedCard;
         private bool _isLastSelectedCardEnemy;
+
+        private MessagesController _msg;
+
+        private void Start()
+        {
+            _msg = GameObject.FindAnyObjectByType<MessagesController>();
+        }
 
         public void Init(
             string playerId,
@@ -36,13 +42,21 @@ namespace CardRPG.UI.Gameplay
         {
             if (isEnemy && !_isLastSelectedCardEnemy)
             {
-                await new AttackCommandHandler().Handle(
+                var attackResult = await new AttackCommandHandler().Handle(
                     new AttackCommand(_playerId, _lastSelectedCard.Id.Value, _enemyId, card.Id.Value));
 
-                var dto = await new GetGameStateQueryHandler().Handle(new GetGameStateQuery());
-                GameObject.FindAnyObjectByType<Board>().Rebuild(dto);
+                if (!attackResult.IsSuccess)
+                {
+                    _msg.Show("Attack failed");
+                }
+                else
+                {
+                    var dto = await new GetGameStateQueryHandler().Handle(new GetGameStateQuery());
+                    GameObject.FindAnyObjectByType<Board>().Rebuild(dto);
 
-                GameObject.FindAnyObjectByType<MessagesController>().Show($"Player attacked");
+                    attackResult.Value.ForEach(ev => _msg.Show(ev.ToString()));
+                    //_msg.Show($"Player attacked");
+                }
             }
 
             _lastSelectedCard = card;

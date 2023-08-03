@@ -1,16 +1,17 @@
 ﻿using CardRPG.Entities.Gameplay;
 using CardRPG.Entities.Users;
+using Core.Basic;
 using System.Threading.Tasks;
 
 namespace CardRPG.UseCases
 {
     public class AttackCommandHandler
     {
-        public async Task Handle(AttackCommand cmd)
+        public async Task<Result<IDomainEvent[]>> Handle(AttackCommand cmd)
         {
             var game = StartRandomGameCommandHandler.Game;
 
-            game.Attack(
+            return game.Attack(
                 new UserId(cmd.AttackerId),
                 new CardId(cmd.AttackerCardId),
                 new CardId(cmd.DefenderCardId));

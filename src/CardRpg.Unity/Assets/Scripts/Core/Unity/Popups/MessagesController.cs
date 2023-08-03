@@ -8,12 +8,14 @@ namespace Core.Unity.Popups
     {
         [SerializeField] private TextTmpIOList _popupIO;
 
-        public void Show(string message)
+        public MessagesController Show(string message)
         {
             var popup = _popupIO.Instantiate();
             popup.text = message;
 
             UILayoutRebuilder.RebuildAll();
+
+            return this;
         }
     }
 }

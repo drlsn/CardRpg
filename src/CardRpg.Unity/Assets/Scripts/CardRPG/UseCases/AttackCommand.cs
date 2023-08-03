@@ -10,11 +10,18 @@ namespace CardRPG.UseCases
         public async Task<Result<IDomainEvent[]>> Handle(AttackCommand cmd)
         {
             var game = StartRandomGameCommandHandler.Game;
+            if (game is null)
+                return false;
 
-            return game.Attack(
+            var result = game.Attack(
                 new UserId(cmd.AttackerId),
                 new CardId(cmd.AttackerCardId),
                 new CardId(cmd.DefenderCardId));
+
+            //if (result.Value.Any(ev => ev is GameFinishedEvent))
+            //    StartRandomGameCommandHandler.Game = null;
+
+            return result;
         }
     }
 

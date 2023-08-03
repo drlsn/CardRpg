@@ -1,5 +1,6 @@
 ﻿using Core.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CardRPG.Entities.Gameplay
 {
@@ -12,6 +13,16 @@ namespace CardRPG.Entities.Gameplay
         public StatisticPoint(int value)
         {
             OriginalValue = value;
+        }
+
+        public StatisticPoint DeepCopy()
+        {
+            var point = new StatisticPoint(OriginalValue);
+            
+            point.Modifiers = Modifiers.DeepCopy().ToList();
+            point.ModifiersLate = ModifiersLate.DeepCopy().ToList();
+
+            return point;
         }
 
         public int CalculatedValue {
@@ -89,5 +100,14 @@ namespace CardRPG.Entities.Gameplay
         public double Value { get; }
         public bool IsFactor { get; }
         public string Id { get; }
+
+        public StatisticPointModifier DeepCopy() =>
+            (StatisticPointModifier) MemberwiseClone();
+    }
+
+    public static class StatisticPointModifierExtensions
+    {
+        public static StatisticPointModifier[] DeepCopy(this IEnumerable<StatisticPointModifier> items) =>
+            items.Select(item => item.DeepCopy()).ToArray();
     }
 }

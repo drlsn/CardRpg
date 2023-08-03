@@ -17,8 +17,11 @@ namespace CardRPG.Entities.Gameplay
             Name = name;
             Statistics = statistics;
         }
+
+        public Card DeepCopy() =>
+            new(new CardId(Id.Value),
+                Name, Statistics.DeepCopy());
     }
 
     public class CardId : EntityId { public CardId(string value) : base(value) { } }
-
 }

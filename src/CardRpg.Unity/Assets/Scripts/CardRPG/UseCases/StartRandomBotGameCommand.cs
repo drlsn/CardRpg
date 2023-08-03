@@ -6,7 +6,7 @@ namespace CardRPG.UseCases
 {
     public class StartRandomGameCommandHandler
     {
-        public static Game Game { get; private set; }
+        public static Game Game { get; set; }
 
         public async Task Handle(StartRandomBotGameCommand cmd)
         {
@@ -16,9 +16,9 @@ namespace CardRPG.UseCases
             Game = new Game(_players);
         }
 
-        public readonly static Player Player = new("Player", new List<Card>() { DefaultCards.Zawisza });
-        public readonly static Player Bot = new("Bot", new List<Card>() { DefaultCards.Ulryk });
-        private static List<Player> _players = new()
+        private static Player Player => new("Player", new List<Card>() { DefaultCards.Zawisza.DeepCopy() });
+        private static Player Bot => new("Bot", new List<Card>() { DefaultCards.Ulryk.DeepCopy() });
+        private static List<Player> _players => new()
         {
             Player,
             Bot

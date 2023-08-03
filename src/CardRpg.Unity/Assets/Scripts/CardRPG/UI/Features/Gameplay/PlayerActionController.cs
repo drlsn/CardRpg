@@ -1,7 +1,12 @@
-﻿using CardRPG.UseCases;
+﻿using CardRPG.Entities.Gameplay.Events;
+using CardRPG.UseCases;
 using Core.Collections;
 using Core.Unity.Popups;
+using Core.Unity.UI;
+using System.Collections;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -52,15 +57,29 @@ namespace CardRPG.UI.Gameplay
                 else
                 {
                     var dto = await new GetGameStateQueryHandler().Handle(new GetGameStateQuery());
-                    GameObject.FindAnyObjectByType<Board>().Rebuild(dto);
+                    var board = FindAnyObjectByType<Board>();
+                    board.Rebuild(dto);
 
                     attackResult.Value.ForEach(ev => _msg.Show(ev.ToString()));
-                    //_msg.Show($"Player attacked");
+
+                    if (attackResult.Value.Any(ev => ev is GameFinishedEvent))
+                    {
+                        _msg.Show("Leaving to menu in 3s...");
+                        StartRandomGameCommandHandler.Game = null;
+                        board.SetInteractable(false);
+                        StartCoroutine(LeaveToMenu());
+                    }
                 }
             }
 
             _lastSelectedCard = card;
             _isLastSelectedCardEnemy = isEnemy;
+        }
+
+        private IEnumerator LeaveToMenu()
+        {
+            yield return new WaitForSeconds(3);
+            SceneManager.LoadScene(0);
         }
 
         private void AssignOnCardSelected()

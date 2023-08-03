@@ -19,6 +19,12 @@
             Power = power ?? new(0);
         }
 
+        public StatisticPointGroup DeepCopy() =>
+            new(Attack?.DeepCopy(),
+                HP?.DeepCopy(),
+                Speed?.DeepCopy(),
+                Power?.DeepCopy());
+
         public void Modify(StatisticPointGroup statisticPointGroup, string id)
         {
             var attack = statisticPointGroup.Attack.CalculatedValue;

@@ -16,8 +16,8 @@ namespace CardRPG.UseCases
             Game = new Game(_players);
         }
 
-        public readonly static Player Player = new(new List<Card>() { DefaultCards.Zawisza });
-        public readonly static Player Bot = new(new List<Card>() { DefaultCards.Ulryk });
+        public readonly static Player Player = new("Player", new List<Card>() { DefaultCards.Zawisza });
+        public readonly static Player Bot = new("Bot", new List<Card>() { DefaultCards.Ulryk });
         private static List<Player> _players = new()
         {
             Player,

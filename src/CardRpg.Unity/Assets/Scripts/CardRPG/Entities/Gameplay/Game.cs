@@ -1,8 +1,8 @@
 ﻿using CardRPG.Entities.Gameplay.Events;
 using CardRPG.Entities.Users;
 using Core.Basic;
+using Core.Collections;
 using Core.Entities;
-using Core.Functional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,13 +37,25 @@ namespace CardRPG.Entities.Gameplay
                 var damage = sourceCard.Statistics.Attack.CalculatedValue;
                 targetCard.Statistics.HP.ModifyClamped(-damage, out double resultDamage);
 
-                if (targetCard.Statistics.HP.CalculatedValue <= 0)
-                    IsGameOver = true;
+                var events = new List<IDomainEvent>();
+                
+                Add(new AttackedEvent(
+                    gameId: Id,
+                    attacker: new(thisPlayer.Id, thisPlayer.Name, new CardData[] { new(sourceCard.Id, sourceCard.Name) }),
+                    defender: new(otherPlayer.Id, otherPlayer.Name, new CardData[] { new(targetCard.Id, targetCard.Name, (int) Math.Abs(resultDamage)) })))
+                .AddTo(events);
 
-                return Add(new AttackedEvent(
-                    attacker: new(thisPlayer.Id, thisPlayer.Id.Value, new CardData[] { new(sourceCard.Id, sourceCard.Name) }),
-                    defender: new(otherPlayer.Id, otherPlayer.Id.Value, new CardData[] { new(targetCard.Id, targetCard.Name, (int) Math.Abs(resultDamage)) })))
-                .ToArray();
+                if (targetCard.Statistics.HP.CalculatedValue <= 0)
+                {
+                    Add(new GameFinishedEvent(
+                        gameId: Id,
+                        winner: new(thisPlayer.Id, thisPlayer.Name)))
+                    .AddTo(events);
+
+                    IsGameOver = true;
+                }
+
+                return events.ToArray();
             });
 
         public Result<IDomainEvent[]> Try(UserId playerId, Func<Player, Result<IDomainEvent[]>> action) =>

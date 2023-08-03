@@ -16,5 +16,11 @@ namespace Core.Collections
                 list.RemoveAt(i);
             }
         }
+
+        public static T AddTo<T>(this T item, IList<T> list)
+        {
+            list.Add(item); 
+            return item;
+        }
     }
 }

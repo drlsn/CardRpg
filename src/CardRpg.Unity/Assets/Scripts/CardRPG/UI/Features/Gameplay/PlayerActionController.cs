@@ -40,7 +40,7 @@ namespace CardRPG.UI.Gameplay
 
         private async void OnCardSelected(Entities.Gameplay.Card card, bool isEnemy)
         {
-            if (isEnemy && !_isLastSelectedCardEnemy)
+            if (isEnemy && !_isLastSelectedCardEnemy && _lastSelectedCard is not null)
             {
                 var attackResult = await new AttackCommandHandler().Handle(
                     new AttackCommand(_playerId, _lastSelectedCard.Id.Value, _enemyId, card.Id.Value));

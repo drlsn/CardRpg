@@ -4,11 +4,12 @@ using System.Linq;
 
 namespace CardRPG.Entities.Gameplay.Events
 {
-    public class AttackedEvent : IDomainEvent
+    public class AttackedEvent : _GameEvent
     {
         public AttackedEvent(
+            GameId gameId,
             CombatantData attacker,
-            CombatantData defender)
+            CombatantData defender) : base(gameId, attacker.Id)
         {
             Attacker = attacker;
             Defender = defender;

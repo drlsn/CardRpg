@@ -8,9 +8,14 @@ namespace CardRPG.Entities.Gameplay
     {
         public UserId Id { get; private set; }
         public List<Card> Cards { get; private set; } = new();
+        public string Name { get; private set; }
 
         public Player(
-            List<Card> cards) : this(EntityId.New<UserId>(), cards) {}
+            string name,
+            List<Card> cards) : this(EntityId.New<UserId>(), cards)
+        {
+            Name = name;
+        }
 
         public Player(
             UserId id,

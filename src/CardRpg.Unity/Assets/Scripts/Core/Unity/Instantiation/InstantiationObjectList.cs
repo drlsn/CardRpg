@@ -30,12 +30,22 @@ namespace Core.Unity
 
         public void Destroy(int index)
         {
-            var inst = _instantiated.Where((inst, i) => i == index).FirstOrDefault();
+            var inst = _instantiated[index];
             if (inst == null)
                 return;
 
             inst.Destroy();
             _instantiated.RemoveAt(index);
+        }
+
+        public void Destroy(T @object)
+        {
+            var inst = _instantiated.FirstOrDefault(inst => object.ReferenceEquals(@object, inst));
+            if (inst == null)
+                return;
+
+            inst.Destroy();
+            _instantiated.Remove(inst);
         }
 
         public T Object => _instantiated.FirstOrDefault();

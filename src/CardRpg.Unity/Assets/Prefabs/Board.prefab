@@ -134,6 +134,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7711961582275482429}
   - component: {fileID: 8169459280458537341}
+  - component: {fileID: 3898700312210010225}
   m_Layer: 5
   m_Name: Board
   m_TagString: Untagged
@@ -176,13 +177,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f840027931e83d14da77adc944088460, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _enemiesBack: {fileID: 3666713314703692710}
-  _enemiesFront: {fileID: 8597698018149433304}
-  _playerBack: {fileID: 2503336105877840716}
-  _playerFront: {fileID: 8705284126359982181}
-  _cardIO:
-    _parent: {fileID: 7711961582275482429}
+  _enemiesBackIO:
+    _parent: {fileID: 3666713314703692710}
     _prefab: {fileID: 28391750140825017, guid: f61fc0bee8ee3024c8b4751daa068024, type: 3}
+  _enemiesFrontIO:
+    _parent: {fileID: 8597698018149433304}
+    _prefab: {fileID: 28391750140825017, guid: f61fc0bee8ee3024c8b4751daa068024, type: 3}
+  _playerBackIO:
+    _parent: {fileID: 2503336105877840716}
+    _prefab: {fileID: 28391750140825017, guid: f61fc0bee8ee3024c8b4751daa068024, type: 3}
+  _playerFrontIO:
+    _parent: {fileID: 8705284126359982181}
+    _prefab: {fileID: 28391750140825017, guid: f61fc0bee8ee3024c8b4751daa068024, type: 3}
+  _playerActionController: {fileID: 3898700312210010225}
+--- !u!114 &3898700312210010225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1352410430662512285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 835870d52c28dfa44a1f419458fcdcfd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5693765917409985069
 GameObject:
   m_ObjectHideFlags: 0

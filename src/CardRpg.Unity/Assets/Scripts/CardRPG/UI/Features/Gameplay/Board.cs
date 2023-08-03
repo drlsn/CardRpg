@@ -1,36 +1,31 @@
 using CardRPG.Entities.Gameplay;
 using CardRPG.UseCases;
+using System.Linq;
 using UnityEngine;
 
 namespace CardRPG.UI.Gameplay
 {
     public class Board : MonoBehaviour
     {
-        [SerializeField] private Transform _enemiesBack;
-        [SerializeField] private Transform _enemiesFront;
+        [SerializeField] private CardRpgIOs.CardIOList _enemiesBackIO;
+        [SerializeField] private CardRpgIOs.CardIOList _enemiesFrontIO;
 
-        [SerializeField] private Transform _playerBack;
-        [SerializeField] private Transform _playerFront;
+        [SerializeField] private CardRpgIOs.CardIOList _playerBackIO;
+        [SerializeField] private CardRpgIOs.CardIOList _playerFrontIO;
 
-        [SerializeField] private CardRpgIOs.CardIOList _cardIO;
+        [SerializeField] private PlayerActionController _playerActionController;
 
         public void Init(GetGameStateQueryOut dto)
         {
             var player = dto.Game.Players.OfId(dto.PlayerId);
             var enemy = dto.Game.Players.NotOfId(dto.PlayerId);
 
-            SpawnCards(player, _playerBack);
-            SpawnCards(enemy, _enemiesBack);
-        }
+            player.Cards.ForEach(card => _playerBackIO.Instantiate().Init(card, isEnemy: false));
+            enemy.Cards.ForEach(card => _enemiesBackIO.Instantiate().Init(card, isEnemy: true));
 
-        private void SpawnCards(Player player, Transform parent)
-        {
-            player.Cards.ForEach(card =>
-            {
-                var cardUI = _cardIO.Instantiate();
-                cardUI.Init(card);
-                cardUI.transform.SetParent(parent);
-            });
+            _playerActionController.Init(
+                _playerBackIO.Objects.ToArray(),
+                _enemiesBackIO.Objects.ToArray());
         }
     }
 }

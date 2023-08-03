@@ -17,6 +17,16 @@ namespace CardRPG.UI.Gameplay
 
         public void Init(GetGameStateQueryOut dto)
         {
+            Rebuild(dto);
+        }
+
+        public void Rebuild(GetGameStateQueryOut dto)
+        {
+            _enemiesBackIO.Destroy();
+            _enemiesFrontIO.Destroy();
+            _playerBackIO.Destroy();
+            _playerFrontIO.Destroy();
+
             var player = dto.Game.Players.OfId(dto.PlayerId);
             var enemy = dto.Game.Players.NotOfId(dto.PlayerId);
 
@@ -24,7 +34,9 @@ namespace CardRPG.UI.Gameplay
             enemy.Cards.ForEach(card => _enemiesBackIO.Instantiate().Init(card, isEnemy: true));
 
             _playerActionController.Init(
+                player.Id.Value,
                 _playerBackIO.Objects.ToArray(),
+                enemy.Id.Value,
                 _enemiesBackIO.Objects.ToArray());
         }
     }

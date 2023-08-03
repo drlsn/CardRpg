@@ -1,4 +1,6 @@
-﻿using Core.Collections;
+﻿using CardRPG.Entities.Users;
+using CardRPG.UseCases;
+using Core.Collections;
 using Core.Unity.Popups;
 using UnityEngine;
 
@@ -6,22 +8,45 @@ namespace CardRPG.UI.Gameplay
 {
     public class PlayerActionController : MonoBehaviour
     {
+        private string _playerId;
         private Card[] _playerCards;
+
+        private string _enemyId;
         private Card[] _enemyCards;
 
+        private Entities.Gameplay.Card _lastSelectedCard;
+        private bool _isLastSelectedCardEnemy;
+
         public void Init(
-            Card[] playerCards, Card[] enemyCards)
+            string playerId,
+            Card[] playerCards,
+            string enemyId,
+            Card[] enemyCards)
         {
+            _playerId = playerId;
             _playerCards = playerCards;
+
+            _enemyId = enemyId;
             _enemyCards = enemyCards;
 
             AssignOnCardSelected();
         }
 
-        private void OnCardSelected(Entities.Gameplay.Card card, bool isEnemy)
+        private async void OnCardSelected(Entities.Gameplay.Card card, bool isEnemy)
         {
-            var x = isEnemy ? "Enemy" : "Player";
-            GameObject.FindAnyObjectByType<PopupController>().Show($"{x} card selected");
+            if (isEnemy && !_isLastSelectedCardEnemy)
+            {
+                await new AttackCommandHandler().Handle(
+                    new AttackCommand(_playerId, _lastSelectedCard.Id.Value, _enemyId, card.Id.Value));
+
+                var dto = await new GetGameStateQueryHandler().Handle(new GetGameStateQuery());
+                GameObject.FindAnyObjectByType<Board>().Rebuild(dto);
+
+                GameObject.FindAnyObjectByType<PopupController>().Show($"Player attacked");
+            }
+
+            _lastSelectedCard = card;
+            _isLastSelectedCardEnemy = isEnemy;
         }
 
         private void AssignOnCardSelected()

@@ -32,8 +32,10 @@ namespace CardRPG.Entities.Gameplay
 
         public void ModifyClamped(double value)
         {
-            var currentValue = CalculatedValue;
-            value = value.Clamp(-currentValue, OriginalValue - currentValue);
+            var newValue = CalculatedValue + value;
+            if (newValue < 0)
+                value -= newValue;
+
             if (value == 0)
                 return;
 

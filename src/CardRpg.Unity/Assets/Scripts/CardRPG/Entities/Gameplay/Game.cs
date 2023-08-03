@@ -30,10 +30,10 @@ namespace CardRPG.Entities.Gameplay
             Try(playerId, (thisPlayer, otherPlayer) =>
             {
                 var sourceCard = thisPlayer.Cards.FirstOrDefault(c => c.Id == sourceCardId);
-                var targetCard = thisPlayer.Cards.FirstOrDefault(c => c.Id == targetCardId);
+                var targetCard = otherPlayer.Cards.FirstOrDefault(c => c.Id == targetCardId);
 
                 var damage = sourceCard.Statistics.Attack.CalculatedValue;
-                targetCard.Statistics.HP.ModifyClamped(damage);
+                targetCard.Statistics.HP.ModifyClamped(-damage);
 
                 if (targetCard.Statistics.HP.CalculatedValue <= 0)
                     IsGameOver = true;

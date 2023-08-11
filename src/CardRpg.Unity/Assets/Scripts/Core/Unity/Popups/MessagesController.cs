@@ -11,6 +11,7 @@ namespace Core.Unity.Popups
         public MessagesController Show(string message)
         {
             var popup = _popupIO.Instantiate();
+            popup.transform.SetSiblingIndex(0);
             popup.text = message;
 
             UILayoutRebuilder.RebuildAll();

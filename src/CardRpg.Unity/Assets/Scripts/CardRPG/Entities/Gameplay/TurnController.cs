@@ -26,6 +26,8 @@ namespace CardRPG.Entities.Gameplay
             if (!CanDo(userId))
                 return false;
 
+            CurrentTurn++;
+
             if (CurrentTurn >= TurnCount)
             {
                 CurrentPlayer = Players.First(player => player.Id != userId).Id;

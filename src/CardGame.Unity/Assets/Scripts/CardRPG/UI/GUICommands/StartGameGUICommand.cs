@@ -1,7 +1,8 @@
+using CardRPG.UI.Features.IOs;
+using CardRPG.UI.Gameplay;
 using CardRPG.UseCases;
 using System.Threading.Tasks;
 using UnityEngine;
-using static CardRPG.UI.Gameplay.CardRpgIOs;
 
 namespace CardRPG.UI.GUICommands
 {
@@ -14,7 +15,8 @@ namespace CardRPG.UI.GUICommands
             await new StartRandomGameCommandHandler().Handle(new StartRandomBotGameCommand());
             var dto = await new GetGameStateQueryHandler().Handle(new GetGameStateQuery());
 
-            var board = _boardIO.Instantiate();
+            _boardIO.Instantiate();
+            var board = _boardIO.PrefabData.Object.GetComponent<Board>();
 
             board.Init(dto);
         }

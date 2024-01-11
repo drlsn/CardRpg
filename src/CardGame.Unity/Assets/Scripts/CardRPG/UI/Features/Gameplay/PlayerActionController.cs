@@ -1,4 +1,5 @@
 ﻿using CardRPG.Entities.Gameplay.Events;
+using CardRPG.UI.GUICommands;
 using CardRPG.UseCases;
 using Core.Collections;
 using Core.Unity.Popups;
@@ -43,6 +44,12 @@ namespace CardRPG.UI.Gameplay
             AssignOnCardSelected();
         }
 
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+                GameObject.FindObjectOfType<GoToMenuGUICommand>().Execute();
+        }
+
         private async void OnCardSelected(Entities.Gameplay.Card card, bool isEnemy)
         {
             if (isEnemy && !_isLastSelectedCardEnemy && _lastSelectedCard is not null)
@@ -67,19 +74,13 @@ namespace CardRPG.UI.Gameplay
                         _msg.Show("Leaving to menu in 3s...");
                         StartRandomGameCommandHandler.Game = null;
                         board.SetInteractable(false);
-                        StartCoroutine(LeaveToMenu());
+                        GameObject.FindObjectOfType<GoToMenuGUICommand>().Execute();
                     }
                 }
             }
 
             _lastSelectedCard = card;
             _isLastSelectedCardEnemy = isEnemy;
-        }
-
-        private IEnumerator LeaveToMenu()
-        {
-            yield return new WaitForSeconds(3);
-            SceneManager.LoadScene(0);
         }
 
         private void AssignOnCardSelected()

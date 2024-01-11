@@ -1,4 +1,6 @@
-namespace CardGame.Logic.Tests;
+using System;
+
+namespace CardGame.Entities.Tests;
 
 public class Tests
 {
@@ -31,5 +33,17 @@ public class Tests
         Assert.IsTrue(game.IsGameOver());
 
         Assert.Pass();
+    }
+
+    [Test]
+    public void Test()
+    {
+        var str = "Sup Dawg!";
+        if (s is not ['S' or 's', .. { Length: 9 or 8 } ])
+        {
+            Assert.Fail();
+        }
+
+        void Change(string text) => text[0] = "K";
     }
 }

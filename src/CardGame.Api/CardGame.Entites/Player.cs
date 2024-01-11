@@ -1,4 +1,4 @@
-﻿namespace CardGame.Logic;
+﻿namespace CardGame.Entities;
 
 public class Player
 {

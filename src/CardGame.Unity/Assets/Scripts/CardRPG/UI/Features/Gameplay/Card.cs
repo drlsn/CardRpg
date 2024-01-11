@@ -1,3 +1,4 @@
+using Core.Unity;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -40,13 +41,7 @@ namespace CardRPG.UI.Gameplay
             _attackText.text = card.Statistics.Attack.CalculatedValue.ToString() + " AT";
 
             _image.sprite = _cardImages.Sprites.GetRandom();
-
-            var rt = _image.rectTransform;
-
-            var ratio = _image.sprite.texture.width / _image.sprite.texture.height;
-            var hDiv = _image.rectTransform.sizeDelta.y / _image.sprite.texture.height;
-
-            _image.rectTransform.sizeDelta = new(rt.sizeDelta.x * hDiv * 2, rt.sizeDelta.y);
+            _image.rectTransform.sizeDelta = new(10000, _image.rectTransform.rect.height);
 
             _cardButton.onClick.AddListener(() => OnCardSelected?.Invoke(_card, _isEnemy));
         }

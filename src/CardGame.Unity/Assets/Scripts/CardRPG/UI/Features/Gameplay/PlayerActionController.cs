@@ -24,9 +24,12 @@ namespace CardRPG.UI.Gameplay
 
         private MessagesController _msg;
 
+        private Board _board;
+
         private void Start()
         {
             _msg = GameObject.FindAnyObjectByType<MessagesController>();
+            _board = FindAnyObjectByType<Board>();
         }
 
         public void Init(
@@ -64,8 +67,7 @@ namespace CardRPG.UI.Gameplay
                 else
                 {
                     var dto = await new GetGameStateQueryHandler().Handle(new GetGameStateQuery());
-                    var board = FindAnyObjectByType<Board>();
-                    board.Rebuild(dto);
+                    _board.Rebuild(dto);
 
                     attackResult.Value.ForEach(ev => _msg.Show(ev.ToString()));
 
@@ -73,7 +75,7 @@ namespace CardRPG.UI.Gameplay
                     {
                         _msg.Show("Leaving to menu in 3s...");
                         StartRandomGameCommandHandler.Game = null;
-                        board.SetInteractable(false);
+                        _board.SetInteractable(false);
                         GameObject.FindObjectOfType<GoToMenuGUICommand>().Execute();
                     }
                 }
@@ -85,6 +87,8 @@ namespace CardRPG.UI.Gameplay
 
         private void AssignOnCardSelected()
         {
+            RemoveOnCardSelected();
+
             AssignOnCardSelected(_playerCards);
             AssignOnCardSelected(_enemyCards);
         }

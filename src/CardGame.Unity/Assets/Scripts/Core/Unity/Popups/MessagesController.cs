@@ -1,5 +1,4 @@
-﻿using Core.Unity.UI;
-using UnityEngine;
+﻿using UnityEngine;
 using static Core.Unity.UnityIOs;
 
 namespace Core.Unity.Popups
@@ -21,7 +20,7 @@ namespace Core.Unity.Popups
                popup.transform.parent.Get<RectTransform>().rect.width,
                popup.rectTransform.rect.height);
 
-            UILayoutRebuilder.RebuildAll();
+            //UILayoutRebuilder.RebuildAll();
 
             return this;
         }

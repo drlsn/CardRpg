@@ -14,6 +14,9 @@ namespace Core.Unity.Popups
             var popup = _popupIO.Instantiate();
             
             popup.text = message;
+            popup.rectTransform.sizeDelta = new(
+                popup.transform.parent.Get<RectTransform>().rect.width,
+                popup.rectTransform.rect.height);
 
             StartCoroutine(DestroyPopupAfterDelay(popup, 2f));
         }

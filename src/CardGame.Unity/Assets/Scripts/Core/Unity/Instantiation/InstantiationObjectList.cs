@@ -16,9 +16,7 @@ namespace Core.Unity
             if (!_parent.gameObject.activeSelf)
                 _parent.gameObject.SetActive(true);
 
-            var instantiated = GameObject.Instantiate(_prefab);
-            instantiated.transform.SetParent(_parent, true);
-
+            var instantiated = GameObject.Instantiate(_prefab, _parent);
             _instantiated.Add(instantiated);
 
             return instantiated;

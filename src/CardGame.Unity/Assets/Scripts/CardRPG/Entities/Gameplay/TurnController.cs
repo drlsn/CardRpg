@@ -2,7 +2,6 @@
 using Core.Basic;
 using System;
 using System.Linq;
-using UnityEngine.LowLevel;
 
 namespace CardRPG.Entities.Gameplay
 {
@@ -70,8 +69,8 @@ namespace CardRPG.Entities.Gameplay
 
         public Result<IDomainEvent[]> TryPerformTurn(UserId playerId, Func<Player, Player, Result<IDomainEvent[]>> action)
         {
-            if (!CanDo(playerId))
-                return false;
+            //if (!CanDo(playerId))
+            //    return false;
 
             var thisPlayer = Players.OfId(playerId);
             var otherPlayer = Players.NotOfId(playerId);
@@ -80,8 +79,8 @@ namespace CardRPG.Entities.Gameplay
             if (!result.IsSuccess)
                 return result;
 
-            if (!SetActionDone(playerId))
-                return result.Fail();
+            //if (!SetActionDone(playerId))
+            //    return result.Fail();
 
             return result;
         }

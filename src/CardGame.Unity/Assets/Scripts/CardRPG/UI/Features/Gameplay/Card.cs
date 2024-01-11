@@ -37,10 +37,11 @@ namespace CardRPG.UI.Gameplay
             _isEnemy = isEnemy;
 
             _nameText.text = card.Name;
-            _hpText.text = card.Statistics.HP.CalculatedValue.ToString() + " HP";
-            _attackText.text = card.Statistics.Attack.CalculatedValue.ToString() + " AT";
+            _hpText.text = card.Statistics.HP.CalculatedValue.ToString();// + " HP";
+            _attackText.text = card.Statistics.Attack.CalculatedValue.ToString();// + " AT";
 
-            _image.sprite = _cardImages.Sprites.GetRandom();
+            Debug.Log($"{card.Name} - Image index - {card.ImageIndex}");
+            _image.sprite = _cardImages.Sprites[card.ImageIndex];
             _image.rectTransform.sizeDelta = new(10000, _image.rectTransform.rect.height);
 
             _cardButton.onClick.AddListener(() => OnCardSelected?.Invoke(_card, _isEnemy));

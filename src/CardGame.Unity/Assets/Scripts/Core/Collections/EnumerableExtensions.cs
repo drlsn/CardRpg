@@ -75,5 +75,30 @@ namespace Core.Collections
 
             return source.AggregateOrDefault(aggregator);
         }
+
+        public static IEnumerable<T> TakeHalf<T>(this IEnumerable<T> source, bool first = true)
+        {
+            if (source.IsNullOrEmpty())
+                return Enumerable.Empty<T>();
+
+            var count = source.Count();
+            if (!first)
+                source = source.Skip(count / 2);
+
+            return source.Take(count % 2 == 0 ? count / 2 : count / 2 + 1);
+        }
+
+        public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source, Random randomRange = null)
+        {
+            randomRange = randomRange ?? new Random();
+
+            T[] elements = source.ToArray();
+            for (int i = elements.Length - 1; i >= 0; i--)
+            {
+                int swapIndex = randomRange.Next(i + 1);
+                yield return elements[swapIndex];
+                elements[swapIndex] = elements[i];
+            }
+        }
     }
 }

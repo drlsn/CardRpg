@@ -25,6 +25,9 @@ namespace Core.Collections
 
         public static void ForEachEnd<T>(this IEnumerable<T> enumerable, Action<T> itemAction)
         {
+            if (enumerable == null)
+                return;
+
             foreach (var item in enumerable)
             {
                 if (item != null)
@@ -34,6 +37,9 @@ namespace Core.Collections
 
         public static IEnumerable<T> ForEach<T>(this IEnumerable<T> enumerable, Action<T> itemAction)
         {
+            if (enumerable == null)
+                return null;
+
             foreach (var item in enumerable)
             {
                 if (item != null)
@@ -45,6 +51,9 @@ namespace Core.Collections
 
         public static IEnumerable<T> ForEach<T>(this IEnumerable<T> enumerable, Action<T, int> itemAction)
         {
+            if (enumerable == null)
+                return null;
+
             int i = 0;
             foreach (var item in enumerable)
             {

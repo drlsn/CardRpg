@@ -42,9 +42,7 @@ namespace CardRPG.UI.Gameplay
             _attackText.text = card.Statistics.Attack.CalculatedValue.ToString();// + " AT";
 
             _image.sprite = _cardImages.Sprites[card.ImageIndex];
-            _image.rectTransform.sizeDelta = new(1000, _image.rectTransform.rect.height);
 
-            UILayoutRebuilder.Rebuild(_cardButton.gameObject);
             _cardButton.onClick.RemoveAllListeners();
             _cardButton.onClick.AddListener(() => OnCardSelected?.Invoke(_card, _isEnemy));
         }

@@ -9,6 +9,9 @@ namespace Core.Collections
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> enumerable) =>
             enumerable is null || enumerable.Count() <= 0;
 
+        public static IEnumerable<T> NotNull<T>(this IEnumerable<T> source) =>
+            source.Where(x => x is not null);
+
         public static void ForEach(this int index, Action action)
         {
             index = System.Math.Abs(index);
@@ -85,6 +88,15 @@ namespace Core.Collections
             return source.AggregateOrDefault(aggregator);
         }
 
+        public static IEnumerable<T> Except<T>(this IEnumerable<T> source, T item)
+            where T : class
+        {
+            if (source.IsNullOrEmpty() || item is null)
+                return source;
+
+            return source.Where(i => i != item);
+        }
+
         public static IEnumerable<T> TakeHalf<T>(this IEnumerable<T> source, bool first = true)
         {
             if (source.IsNullOrEmpty())
@@ -109,5 +121,6 @@ namespace Core.Collections
                 elements[swapIndex] = elements[i];
             }
         }
+
     }
 }

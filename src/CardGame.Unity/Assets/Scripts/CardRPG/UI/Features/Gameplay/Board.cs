@@ -1,8 +1,7 @@
 using CardRPG.UseCases;
+using Core.Unity;
 using Core.Unity.Popups;
-using Core.Unity.Transforms;
 using System.Collections;
-using TMPro;
 using UnityEngine;
 
 namespace CardRPG.UI.Gameplay
@@ -15,6 +14,8 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private CardRpgIOs.CardIOList _enemiesBattleIO;
         [SerializeField] private Card _enemyDeck;
 
+        [SerializeField] private Card _commonDeck;
+
         // Player
         [SerializeField] private CardRpgIOs.CardIOList _playerBattleIO;
         [SerializeField] private CardRpgIOs.CardIOList _playerHandIO;
@@ -22,6 +23,7 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private Card _myDeck;
 
         [SerializeField] private PlayerActionController _playerActionController;
+        [SerializeField] private RectTransform _moveArea;
 
         private MessagesController _msg;
 
@@ -61,12 +63,30 @@ namespace CardRPG.UI.Gameplay
 
         private IEnumerator Move()
         {
-            _msg.Show("Mixing Cards", waitTime: 5.5f);
-
             yield return new WaitForSeconds(1);
 
-            _myDeck.AnimateMixingCards(isMe: true);
-            _enemyDeck.AnimateMixingCards(isMe: false);
+            var myDeck = Instantiate(_myDeck, _myDeck.transform.parent);
+            var enemyDeck = Instantiate(_enemyDeck, _enemyDeck.transform.parent);
+
+            _myDeck.gameObject.SetActive(false);
+            _enemyDeck.gameObject.SetActive(false);
+
+            enemyDeck.AnimateMixingCards(isMe: false);
+            myDeck.AnimateMixingCards(isMe: true, onDoneFinal: () =>
+            {
+                _msg.HideMessage();
+                
+                _myDeck.gameObject.SetActive(true);
+                _enemyDeck.gameObject.SetActive(true);
+
+                _moveArea.DestroyChildren();
+
+                _commonDeck.gameObject.SetActive(true);
+            });
+
+            yield return new WaitForSeconds(0.75f);
+            _msg.Show("Mixing Cards");
+
         }
     }
 }

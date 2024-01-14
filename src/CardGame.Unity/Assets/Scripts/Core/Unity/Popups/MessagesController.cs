@@ -4,7 +4,6 @@ using Core.Unity.UI;
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using static Core.Maths.LerpingFunctions;
 using static Core.Unity.UnityIOs;
 
 namespace Core.Unity.Popups
@@ -13,50 +12,58 @@ namespace Core.Unity.Popups
     {
         [SerializeField] private TextTmpIOList _popupIO;
 
-        public MessagesController Show(string message, float moveTime = 0.5f, float waitTime = 0.75f)
+        public MessagesController Show(string message, float showTime = 0.25f, float waitTime = 0f)
         {
-            var popup = _popupIO.Object ?? _popupIO.Instantiate(new Vector2(-2000, 0));
+            var popup = _popupIO.Object ?? _popupIO.Instantiate();
 
             var rt = popup.RT();
+            rt.localScale = Vector3.zero;
 
             rt.SetSiblingIndex(0);
             popup.GetComponentsInChildren<TMP_Text>(includeInactive: true)
                 .ForEach(text => text.text = message);
 
-            LerpFunctions.LerpPosition2D(
-                 StartCoroutine,
-                 rt,
-                 new Vector2(Screen.width / 2, Screen.height - 200),
-                 durationSeconds: moveTime,
-                 onDone: () =>
-                 {
-                     StartCoroutine(DestroyText(waitTime));
-                 });
+            LerpFunctions.LerpScale2D(
+                    StartCoroutine,
+                    rt,
+                    1,
+                    durationSeconds: showTime,
+                    onDone: () =>
+                    {
+                        if (waitTime != 0)
+                            StartCoroutine(DestroyText(waitTime));
+                    });
 
             return this;
+        }
+
+        private bool _explicitDestroy;
+
+        public void HideMessage()
+        {
+            _explicitDestroy = true;
+            StartCoroutine(DestroyText(0));
         }
 
         private IEnumerator DestroyText(float waitTime = 0.75f)
         {
             yield return new WaitForSeconds(waitTime);
 
+            if (_explicitDestroy)
+                yield return null;
+
             var rt = _popupIO.Object.RT();
             var time = 0.5f;
-            LerpFunctions.LerpPosition2D(
+            LerpFunctions.LerpScale2D(
                  StartCoroutine,
                  rt,
-                 new Vector2(5000, 0),
+                 0,
                  durationSeconds: time,
                  onDone: () =>
                  {
                      _popupIO.Destroy();
+                     _explicitDestroy = false;
                  });
-
-            LerpFunctions.LerpRotationZ(
-                 StartCoroutine,
-                 rt,
-                 -360,
-                 durationSeconds: time);
         }
     }
 }

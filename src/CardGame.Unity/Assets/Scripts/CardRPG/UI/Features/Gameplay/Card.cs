@@ -9,6 +9,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -18,6 +19,7 @@ namespace CardRPG.UI.Gameplay
         public event OnCardSelectedDelegate OnCardSelected;
 
         [SerializeField] private TMP_Text _nameText;
+        [SerializeField] private TMP_Text _descText;
 
         [SerializeField] private TMP_Text _hpText;
         [SerializeField] private TMP_Text _attackText;
@@ -88,38 +90,55 @@ namespace CardRPG.UI.Gameplay
             _cardButton.onClick.AddListener(() => OnCardSelected?.Invoke(_card, _isEnemy));
         }
 
+        public void SetDesc(string text) => _descText.text = text;
+
         private bool _isMoving;
-        public void AnimateMixingCards(bool isMe)
+        public void AnimateMixingCards(
+            bool isMe,
+            float cardMoveTime = 0.75f,
+            float mixCardMoveTime = 0.25f,
+            float timeOffsetFactor = 0.66f,
+            int cardCount = 7,
+            Action onDoneFinal = null)
         {
             var initialPos = RT.position;
 
-            var targetPos = new Vector2(
-                Screen.width / 2 + (RT.rect.width + 10) * (isMe ? 1 : -1),
-                Screen.height / 2);
+            var targetPos = ScreenEx.Middle.AddX((RT.rect.width + 80) * (!isMe ? 1 : -1));
 
             LerpFunctions.BeginLerp(RT, _moveArea, onDone =>
             {
-                LerpFunctions.LerpScale2D(
-                    StartCoroutine,
-                    RT,
-                    1.3f);
-
                 LerpFunctions.LerpPosition2D(
                     StartCoroutine,
                     RT,
                     targetPos,
+                    cardMoveTime,
                     onDone: AnimateCascade);
+
+                LerpFunctions.LerpRotationZ(
+                    StartCoroutine,
+                    RT,
+                    360,
+                    cardMoveTime);
+
+                LerpFunctions.LerpScale2D(
+                    StartCoroutine,
+                    RT,
+                    1.5f,
+                    cardMoveTime / 2,
+                    onDone: () =>
+                        LerpFunctions.LerpScale2D(
+                            StartCoroutine,
+                            RT,
+                            1f,
+                            cardMoveTime / 2));
             });
 
             void AnimateCascade()
             {
-                var cardMoveTime = 0.25f;
-                var timeOffsetFactor = 0.66f;
-                var cardCount = 7;
-                var totalTime = cardCount * cardMoveTime * timeOffsetFactor;
+                var totalTime = cardCount * mixCardMoveTime * timeOffsetFactor;
 
                 if (isMe)
-                    AnimateDeckCascade(ScreenEx.Middle, cardMoveTime, timeOffsetFactor, cardCount);
+                    AnimateDeckCascade(ScreenEx.Middle, mixCardMoveTime, timeOffsetFactor, cardCount);
                 else
                     StartCoroutine(CRT());
 
@@ -127,8 +146,8 @@ namespace CardRPG.UI.Gameplay
 
                 IEnumerator CRT()
                 {
-                    yield return new WaitForSeconds(cardMoveTime / 2);
-                    AnimateDeckCascade(ScreenEx.Middle, cardMoveTime, timeOffsetFactor, cardCount);
+                    yield return new WaitForSeconds(mixCardMoveTime / 2);
+                    AnimateDeckCascade(ScreenEx.Middle, mixCardMoveTime, timeOffsetFactor, cardCount);
                 }
             }
 
@@ -138,20 +157,34 @@ namespace CardRPG.UI.Gameplay
 
                 LerpFunctions.BeginLerp(RT, _moveArea, onDone =>
                 {
-                    LerpFunctions.LerpScale2D(
-                        StartCoroutine,
-                        RT,
-                        1f);
-
                     LerpFunctions.LerpPosition2D(
                         StartCoroutine,
                         RT,
                         initialPos,
+                        cardMoveTime,
                         onDone: () => 
                         {
                             isMe.IfFalseDo(() => _reversedCardsIO.Destroy());
                             isMe.IfTrueDo(MoveCommonDeckBack);
                         });
+
+                    LerpFunctions.LerpRotationZ(
+                        StartCoroutine,
+                        RT,
+                        -360,
+                        cardMoveTime);
+
+                    LerpFunctions.LerpScale2D(
+                        StartCoroutine,
+                        RT,
+                        1.5f,
+                        cardMoveTime / 2,
+                        onDone: () =>
+                            LerpFunctions.LerpScale2D(
+                                StartCoroutine,
+                                RT,
+                                1f,
+                                cardMoveTime / 2));
                 });
             }
 
@@ -159,18 +192,16 @@ namespace CardRPG.UI.Gameplay
             {
                 _reversedCardsIO.Destroy(1, int.MaxValue);
                 var card = _reversedCardsIO.Object;
+                card.SetDesc("Common\nDeck");
 
                 LerpFunctions.BeginLerp(card.RT, _moveArea, onDone =>
                 {
                     LerpFunctions.LerpPosition2D(
                         StartCoroutine,
                         card.RT,
-                        ScreenEx.Right.AddX(-card.RT.rect.width / 2 - 10));
-
-                LerpFunctions.LerpScale2D(
-                        StartCoroutine,
-                        card.RT,
-                        1f);
+                        ScreenEx.Right.AddX(-card.RT.rect.width / 2 - 10),
+                        cardMoveTime,
+                        onDone: onDoneFinal);
                 });
             }
         }
@@ -189,15 +220,16 @@ namespace CardRPG.UI.Gameplay
 
                 var card = _reversedCardsIO.Instantiate();
                 card.RT.localScale = new Vector3(1, 1, 1);
-                card.RT.pivot = new Vector2(0.5f, 0.5f);
                 RTPresetsExtensions.StretchToMiddle(card);
 
                 LerpFunctions.BeginLerp(card.RT, _moveArea, onDone =>
+                {
                     LerpFunctions.LerpPosition2D(
                         StartCoroutine,
                         card.RT,
-                    targetPos,
-                    durationSeconds: cardMoveTime));
+                        targetPos,
+                        durationSeconds: cardMoveTime);
+                });
             }
         }
     }

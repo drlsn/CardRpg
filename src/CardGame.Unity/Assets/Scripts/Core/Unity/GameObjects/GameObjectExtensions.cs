@@ -21,6 +21,13 @@ namespace Core.Unity
             components.ToList().ForEach(c => c.Destroy());
         }
 
+        public static void DestroyChildren<T>(this T component)
+            where T : Component
+        {
+            foreach (var c in component.transform)
+                Destroy(c.ToTransform());
+        }
+
         public static void Destroy(this UnityEngine.GameObject gameObject)
         {
             gameObject.SetActive(false);

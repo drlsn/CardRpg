@@ -166,12 +166,13 @@ namespace Core.Unity.Transforms
         }
 
         public static void LerpPosition2D(
+            Func<IEnumerator, Coroutine> startCoroutine,
             Transform transform,
             Vector2 targetPosition,
-            float durationSeconds,
-            LerpFunctionType type,
-            Func<IEnumerator, Coroutine> startCoroutine,
-            Action onDone)
+            float durationSeconds = 0.75f,
+            LerpFunctionType type = LerpFunctionType.Smooth,
+            Action onDone = null,
+            Action<float> onFrame = null)
         {
             LerpingFunctions.Lerp(
                 Vector2.Lerp,
@@ -182,16 +183,17 @@ namespace Core.Unity.Transforms
                 startCoroutine,
                 UnityGlobalStateFuncs.GetDeltaTime,
                 LerpingFunctions.GetLerpFunction(type),
-                onDone);
+                onDone,
+                onFrame);
         }
 
         public static void LerpRotationZ(
+            Func<IEnumerator, Coroutine> startCoroutine,
             Transform transform,
             float targetValue,
-            float durationSeconds,
-            LerpFunctionType type,
-            Func<IEnumerator, Coroutine> startCoroutine,
-            Action onDone)
+            float durationSeconds = 0.75f,
+            LerpFunctionType type = LerpFunctionType.Smooth,
+            Action onDone = null)
         {
             LerpingFunctions.Lerp(
                 Mathf.Lerp,
@@ -246,12 +248,12 @@ namespace Core.Unity.Transforms
         }
 
         public static void LerpScale2D(
+            Func<IEnumerator, Coroutine> startCoroutine,
             Transform transform,
             float targetValue,
-            float durationSeconds,
-            LerpFunctionType type,
-            Func<IEnumerator, Coroutine> startCoroutine,
-            Action onDone)
+            float durationSeconds = 0.75f,
+            LerpFunctionType type = LerpFunctionType.Smooth,
+            Action onDone = null)
         {
             LerpingFunctions.Lerp(
                 Vector2.Lerp,
@@ -318,29 +320,15 @@ namespace Core.Unity.Transforms
 
         #region Lerp Complex
 
-        public static void LerpPosition2DComplex(
+        public static void BeginLerp(
             RectTransform rt,
-            RectTransform moveParent,
-            Vector2 targetPosition,
-            Func<IEnumerator, Coroutine> startCoroutine,
-            Action onDone = null,
-            float durationSeconds = 0.75f,
-            LerpFunctionType type = LerpFunctionType.Smooth)
+            RectTransform moveParent, 
+            Action<Action> lerpAction)
         {
             var previousParent = rt.parent;
             rt.SetParent(moveParent.transform);
 
-            LerpPosition2D(
-                rt,
-                targetPosition,
-                durationSeconds,
-                type,
-                startCoroutine,
-                onDone: () => 
-                {
-                    rt.SetParent(previousParent);
-                    onDone?.Invoke();
-                });
+            lerpAction(() => rt.SetParent(previousParent));
         }
 
         #endregion

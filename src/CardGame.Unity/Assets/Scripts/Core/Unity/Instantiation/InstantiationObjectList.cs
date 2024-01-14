@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Core.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -39,14 +40,23 @@ namespace Core.Unity
             _instantiated.Clear();
         }
 
-        public void Destroy(int index)
+        public void Destroy(int index, int count = 1)
         {
-            var inst = _instantiated[index];
-            if (inst == null)
+            if (count < 1)
                 return;
 
-            inst.Destroy();
-            _instantiated.RemoveAt(index);
+            if (count > _instantiated.Count - index)
+                count = _instantiated.Count - index;
+            
+            Enumerable.Range(index, count).ForEach(i =>
+            {
+                var inst = _instantiated[index];
+                if (inst == null)
+                    return;
+
+                inst.Destroy();
+                _instantiated.RemoveAt(index);
+            });
         }
 
         public void Destroy(T @object)

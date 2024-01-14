@@ -13,6 +13,7 @@ namespace CardRPG.UI.Gameplay
 
         public async Task Play()
         {
+            Application.targetFrameRate = 60;
             await GameObject.FindObjectOfType<StartGameGUICommand>()
                 .Execute();
         }

@@ -13,7 +13,7 @@ namespace Core.Unity.Popups
     {
         [SerializeField] private TextTmpIOList _popupIO;
 
-        public MessagesController Show(string message)
+        public MessagesController Show(string message, float moveTime = 0.5f, float waitTime = 0.75f)
         {
             var popup = _popupIO.Object ?? _popupIO.Instantiate(new Vector2(-2000, 0));
 
@@ -23,53 +23,40 @@ namespace Core.Unity.Popups
             popup.GetComponentsInChildren<TMP_Text>(includeInactive: true)
                 .ForEach(text => text.text = message);
 
-            var time = 0.5f;
             LerpFunctions.LerpPosition2D(
+                 StartCoroutine,
                  rt,
                  new Vector2(Screen.width / 2, Screen.height - 200),
-                 durationSeconds: time,
-                 LerpFunctionType.Smooth,
-                 StartCoroutine,
+                 durationSeconds: moveTime,
                  onDone: () =>
                  {
-                     StartCoroutine(DestroyText());
+                     StartCoroutine(DestroyText(waitTime));
                  });
-
-            LerpFunctions.LerpRotationZ(
-                 rt,
-                 360,
-                 durationSeconds: time,
-                 LerpFunctionType.Smooth,
-                 StartCoroutine,
-                 onDone: () => {});
 
             return this;
         }
 
-        private IEnumerator DestroyText()
+        private IEnumerator DestroyText(float waitTime = 0.75f)
         {
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(waitTime);
 
             var rt = _popupIO.Object.RT();
             var time = 0.5f;
             LerpFunctions.LerpPosition2D(
+                 StartCoroutine,
                  rt,
                  new Vector2(5000, 0),
                  durationSeconds: time,
-                 LerpFunctionType.Smooth,
-                 StartCoroutine,
                  onDone: () =>
                  {
                      _popupIO.Destroy();
                  });
 
             LerpFunctions.LerpRotationZ(
+                 StartCoroutine,
                  rt,
                  -360,
-                 durationSeconds: time,
-                 LerpFunctionType.Smooth,
-                 StartCoroutine,
-                 onDone: () => { });
+                 durationSeconds: time);
         }
     }
 }

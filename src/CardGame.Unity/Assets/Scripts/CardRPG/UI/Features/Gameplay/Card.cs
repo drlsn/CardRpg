@@ -1,11 +1,14 @@
+using Core.Collections;
+using Core.Functional;
 using Core.Unity.Transforms;
 using Core.Unity.UI;
+using Core.Unity.Math;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static Core.Maths.LerpingFunctions;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -23,39 +26,22 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private Button _reversedCardButton;
 
         [SerializeField] private Image _image;
-        
+
+        [SerializeField] private CardRpgIOs.CardIOList _reversedCardsIO;
+
         private Entities.Gameplay.Card _card;
         private bool _isEnemy;
 
-        private RectTransform _rt;
-        private GameObject _moveArea;
+        public RectTransform RT { get; private set; }
+        private RectTransform _moveArea;
 
         private static CardImages _cardImages;
 
         private void Awake()
         {
-            _rt = GetComponent<RectTransform>();
+            RT = GetComponent<RectTransform>();
             _cardImages ??= FindObjectOfType<CardImages>();
-            _moveArea = GameObject.FindGameObjectWithTag("MoveArea");
-
-            _cardButton.onClick.RemoveAllListeners();
-            _cardButton.onClick.AddListener(() =>
-            {
-                OnCardSelected?.Invoke(_card, _isEnemy);
-                if (_cardForMove is null || _isMoving || _cardForMove == this)
-                    return;
-
-                StartMoving(_rt.position);
-            });
-
-            _reversedCardButton?.onClick?.RemoveAllListeners();
-            _reversedCardButton?.onClick?.AddListener(() =>
-            {
-                if (_cardForMove is null || _isMoving || _cardForMove == this)
-                    return;
-
-                StartMoving(_rt.position);
-            });
+            _moveArea = GameObject.FindGameObjectWithTag("MoveArea").RT();
         }
 
         public void Init(Entities.Gameplay.Card card, bool isEnemy)
@@ -72,24 +58,17 @@ namespace CardRPG.UI.Gameplay
             _cardButton.onClick.RemoveAllListeners();
             _cardButton.onClick.AddListener(() =>
             {
-                OnCardSelected?.Invoke(_card, _isEnemy);
-                if (_cardForMove is null || _isMoving)
+                if (_isMoving)
                     return;
-
-                Vector3[] v = new Vector3[4];
-                _rt.GetWorldCorners(v);
-                StartMoving(v[0] + new Vector3(0, (v[1].y - v[0].y) / 2));
+                
+                OnCardSelected?.Invoke(_card, _isEnemy);
             });
 
             _reversedCardButton.onClick.RemoveAllListeners();
             _reversedCardButton.onClick.AddListener(() => 
             {
-                if (_cardForMove is null || _isMoving)
+                if (_isMoving)
                     return;
-
-                Vector3[] v = new Vector3[4];
-                _rt.GetWorldCorners(v);
-                StartMoving(v[0] + new Vector3(0, (v[1].y - v[0].y) / 2));
             });
         }
 
@@ -109,69 +88,117 @@ namespace CardRPG.UI.Gameplay
             _cardButton.onClick.AddListener(() => OnCardSelected?.Invoke(_card, _isEnemy));
         }
 
-        private static Card _cardForMove;
-
-        public void SelectForMove()
-        {
-            _cardForMove = this;
-        }
-
-        public void SetBgButtonActive(bool enabled = true)
-        {
-            _reversedCardButton.transform.parent.gameObject.SetActive(enabled);
-        }
-
         private bool _isMoving;
-        public void StartMoving(Vector2 targetPos)
+        public void AnimateMixingCards(bool isMe)
         {
-            if (_isMoving)
-                return;
-            Debug.Log("StartMoving");
+            var initialPos = RT.position;
 
-            var rt = _cardForMove.transform.GetComponent<RectTransform>();
-            var prevParent = rt.parent;
-            rt.SetParent(_moveArea.transform);
-            _isMoving = true;
+            var targetPos = new Vector2(
+                Screen.width / 2 + (RT.rect.width + 10) * (isMe ? 1 : -1),
+                Screen.height / 2);
 
-            var time = 0.75f;
-            LerpFunctions.LerpPosition2D(
-                rt,
-                targetPos,
-                durationSeconds: time,
-                LerpFunctionType.Smooth,
-                StartCoroutine,
-                onDone: () =>
-                {
-                    _isMoving = false;
-                    rt.SetParent(prevParent);
-                    _cardForMove.SetBgButtonActive(false);
-                    _cardForMove = null;
-                });
-
-            LerpFunctions.LerpRotationZ(
-                rt,
-                360,
-                durationSeconds: time,
-                LerpFunctionType.Smooth,
-                StartCoroutine,
-                onDone: () => { });
-
-            LerpFunctions.LerpScale2D(
-                    rt,
-                    2,
-                    durationSeconds: time / 2,
-                    LerpFunctionType.Smooth,
+            LerpFunctions.BeginLerp(RT, _moveArea, onDone =>
+            {
+                LerpFunctions.LerpScale2D(
                     StartCoroutine,
-                    onDone: () => 
-                    {
-                        LerpFunctions.LerpScale2D(
-                        rt,
-                        1,
-                        durationSeconds: time / 2,
-                        LerpFunctionType.Smooth,
+                    RT,
+                    1.3f);
+
+                LerpFunctions.LerpPosition2D(
+                    StartCoroutine,
+                    RT,
+                    targetPos,
+                    onDone: AnimateCascade);
+            });
+
+            void AnimateCascade()
+            {
+                var cardMoveTime = 0.25f;
+                var timeOffsetFactor = 0.66f;
+                var cardCount = 7;
+                var totalTime = cardCount * cardMoveTime * timeOffsetFactor;
+
+                if (isMe)
+                    AnimateDeckCascade(ScreenEx.Middle, cardMoveTime, timeOffsetFactor, cardCount);
+                else
+                    StartCoroutine(CRT());
+
+                StartCoroutine(MoveOwnDecksBack(totalTime));
+
+                IEnumerator CRT()
+                {
+                    yield return new WaitForSeconds(cardMoveTime / 2);
+                    AnimateDeckCascade(ScreenEx.Middle, cardMoveTime, timeOffsetFactor, cardCount);
+                }
+            }
+
+            IEnumerator MoveOwnDecksBack(float waitTime)
+            {
+                yield return new WaitForSeconds(waitTime);
+
+                LerpFunctions.BeginLerp(RT, _moveArea, onDone =>
+                {
+                    LerpFunctions.LerpScale2D(
                         StartCoroutine,
-                        onDone: () => { });
-                    });
+                        RT,
+                        1f);
+
+                    LerpFunctions.LerpPosition2D(
+                        StartCoroutine,
+                        RT,
+                        initialPos,
+                        onDone: () => 
+                        {
+                            isMe.IfFalseDo(() => _reversedCardsIO.Destroy());
+                            isMe.IfTrueDo(MoveCommonDeckBack);
+                        });
+                });
+            }
+
+            void MoveCommonDeckBack()
+            {
+                _reversedCardsIO.Destroy(1, int.MaxValue);
+                var card = _reversedCardsIO.Object;
+
+                LerpFunctions.BeginLerp(card.RT, _moveArea, onDone =>
+                {
+                    LerpFunctions.LerpPosition2D(
+                        StartCoroutine,
+                        card.RT,
+                        ScreenEx.Right.AddX(-card.RT.rect.width / 2 - 10));
+
+                LerpFunctions.LerpScale2D(
+                        StartCoroutine,
+                        card.RT,
+                        1f);
+                });
+            }
+        }
+
+        public void AnimateDeckCascade(
+            Vector2 targetPos, float cardMoveTime, float timeOffsetFactor = 1f, int count = 5)
+        {
+            count.ForEach(i =>
+            {
+                StartCoroutine(CRT(cardMoveTime, i * cardMoveTime * timeOffsetFactor));
+            });
+
+            IEnumerator CRT(float cardMoveTime, float waitTime)
+            {
+                yield return new WaitForSeconds(waitTime);
+
+                var card = _reversedCardsIO.Instantiate();
+                card.RT.localScale = new Vector3(1, 1, 1);
+                card.RT.pivot = new Vector2(0.5f, 0.5f);
+                RTPresetsExtensions.StretchToMiddle(card);
+
+                LerpFunctions.BeginLerp(card.RT, _moveArea, onDone =>
+                    LerpFunctions.LerpPosition2D(
+                        StartCoroutine,
+                        card.RT,
+                    targetPos,
+                    durationSeconds: cardMoveTime));
+            }
         }
     }
 }

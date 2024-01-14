@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 
 namespace Core.Maths
 {
@@ -53,7 +54,8 @@ namespace Core.Maths
             float durationSeconds,
             Func<IEnumerator, TCoroutine> startCoroutine,
             Func<float> getDeltaTime,
-            Action onDone)
+            Action onDone,
+            Action<float> onFrame = null)
         {
             var startValue = getValue();
             var lerpEnumerator = LerpingFunctions.Lerp(
@@ -72,12 +74,13 @@ namespace Core.Maths
             Func<IEnumerator, TCoroutine> startCoroutine,
             Func<float> getDeltaTime,
             Func<float, float> curveLerp,
-            Action onDone = null)
+            Action onDone = null,
+            Action<float> onFrame = null)
         {
             var startValue = getValue();
             var lerpEnumerator = LerpingFunctions.Lerp(
                 lerpFunction,
-                startValue, targetValue, durationSeconds, setValue, getDeltaTime, curveLerp, onDone);
+                startValue, targetValue, durationSeconds, setValue, getDeltaTime, curveLerp, onDone, onFrame);
 
             return startCoroutine(lerpEnumerator);
         }
@@ -89,11 +92,12 @@ namespace Core.Maths
             float duration,
             Action<TValue> setValue,
             Func<float> getTime,
-            Action onDone = null)
+            Action onDone = null,
+            Action<float> onFrame = null)
         {
             return Lerp(
                 lerpFunction,
-                startValue, endValue, duration, setValue, getTime, t => t, onDone);
+                startValue, endValue, duration, setValue, getTime, t => t, onDone, onFrame);
         }
 
         private static IEnumerator Lerp<TValue>(
@@ -104,7 +108,8 @@ namespace Core.Maths
             Action<TValue> setValue, 
             Func<float> getTime,
             Func<float, float> curveLerp,
-            Action onDone = null)
+            Action onDone = null,
+            Action<float> onFrame = null)
         {
             float time = 0;
 
@@ -116,7 +121,10 @@ namespace Core.Maths
                 var colorLerped = lerpFunction(startValue, endValue, t);
                 setValue(colorLerped);
 
-                time += getTime();
+                var currentTime = getTime();
+                onFrame?.Invoke(currentTime);
+                time += currentTime;
+
                 yield return null;
             }
 

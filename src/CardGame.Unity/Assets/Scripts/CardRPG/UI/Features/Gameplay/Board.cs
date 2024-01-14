@@ -2,6 +2,7 @@ using CardRPG.UseCases;
 using Core.Unity.Popups;
 using Core.Unity.Transforms;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 
 namespace CardRPG.UI.Gameplay
@@ -12,16 +13,15 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private CardRpgIOs.CardIOList _enemiesBackIO;
         [SerializeField] private CardRpgIOs.CardIOList _enemiesHandIO;
         [SerializeField] private CardRpgIOs.CardIOList _enemiesBattleIO;
-        [SerializeField] private RectTransform _enemyDeck;
+        [SerializeField] private Card _enemyDeck;
 
         // Player
         [SerializeField] private CardRpgIOs.CardIOList _playerBattleIO;
         [SerializeField] private CardRpgIOs.CardIOList _playerHandIO;
         [SerializeField] private CardRpgIOs.CardIOList _playerBackIO;
-        [SerializeField] private RectTransform _myDeck;
+        [SerializeField] private Card _myDeck;
 
         [SerializeField] private PlayerActionController _playerActionController;
-        [SerializeField] private RectTransform _moveArea;
 
         private MessagesController _msg;
 
@@ -61,20 +61,12 @@ namespace CardRPG.UI.Gameplay
 
         private IEnumerator Move()
         {
-            _msg.Show("Mixing Cards");
-            yield return new WaitForSeconds(2);
+            _msg.Show("Mixing Cards", waitTime: 5.5f);
 
-            LerpFunctions.LerpPosition2DComplex(
-               _enemyDeck,
-               _moveArea,
-               new Vector2(Screen.width / 2 - _enemyDeck.rect.width - 10, Screen.height / 2),
-               StartCoroutine);
+            yield return new WaitForSeconds(1);
 
-            LerpFunctions.LerpPosition2DComplex(
-               _myDeck,
-               _moveArea,
-               new Vector2(Screen.width / 2 + _myDeck.rect.width + 10, Screen.height / 2),
-               StartCoroutine);
+            _myDeck.AnimateMixingCards(isMe: true);
+            _enemyDeck.AnimateMixingCards(isMe: false);
         }
     }
 }

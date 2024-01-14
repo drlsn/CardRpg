@@ -31,9 +31,9 @@ namespace Core.Unity.Scripts
             _data.Destroy();
         }
 
-        public void Destroy(int index)
+        public void Destroy(int index, int count = 1)
         {
-            _data.Destroy(index);
+            _data.Destroy(index, count);
         }
     }
 }

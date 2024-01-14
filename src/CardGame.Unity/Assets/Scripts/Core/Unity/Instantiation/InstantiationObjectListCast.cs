@@ -16,7 +16,7 @@ namespace Core.Unity
 
         public IEnumerable<T> Objects => _anyComponentIO.Objects.Select(c => c.GetComponent<T>());
 
-        public void Destroy(int index) => _anyComponentIO.Destroy(index);
+        public void Destroy(int index, int count = 1) => _anyComponentIO.Destroy(index, count);
 
     }
 }

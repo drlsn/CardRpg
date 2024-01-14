@@ -1,6 +1,7 @@
 ﻿using Common.Unity.Functional;
 using Core.Collections;
 using Core.Maths;
+using Core.Unity.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ namespace Core.Unity.Transforms
 {
     public class LerpFunctions
     {
+        #region Lerp Specific
+
         public static void LerpAnimatorSpeed(
            Animator animator,
            float targetValue,
@@ -310,6 +313,37 @@ namespace Core.Unity.Transforms
                     visible, targetColor, durationSeconds, type,
                     startCoroutine, onDone);
         }
+
+        #endregion
+
+        #region Lerp Complex
+
+        public static void LerpPosition2DComplex(
+            RectTransform rt,
+            RectTransform moveParent,
+            Vector2 targetPosition,
+            Func<IEnumerator, Coroutine> startCoroutine,
+            Action onDone = null,
+            float durationSeconds = 0.75f,
+            LerpFunctionType type = LerpFunctionType.Smooth)
+        {
+            var previousParent = rt.parent;
+            rt.SetParent(moveParent.transform);
+
+            LerpPosition2D(
+                rt,
+                targetPosition,
+                durationSeconds,
+                type,
+                startCoroutine,
+                onDone: () => 
+                {
+                    rt.SetParent(previousParent);
+                    onDone?.Invoke();
+                });
+        }
+
+        #endregion
 
         public static void ToBlack(Image image)
         {

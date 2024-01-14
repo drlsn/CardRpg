@@ -22,6 +22,17 @@ namespace Core.Unity
             return instantiated;
         }
 
+        public T Instantiate(Vector3 position)
+        {
+            if (!_parent.gameObject.activeSelf)
+                _parent.gameObject.SetActive(true);
+
+            var instantiated = GameObject.Instantiate(_prefab, position, Quaternion.identity, _parent);
+            _instantiated.Add(instantiated);
+
+            return instantiated;
+        }
+
         public void Destroy()
         {
             _instantiated.Destroy();

@@ -67,5 +67,56 @@ namespace Core.Unity.UI
         {
             rt.offsetMin = new Vector2(rt.offsetMin.x, bottom);
         }
+
+        public static void AddLeft(this Component rt, float left)
+        {
+            AddLeft(rt.GetComponent<RectTransform>(), left);
+        }
+
+        public static void AddRight(this Component rt, float right)
+        {
+            AddRight(rt.GetComponent<RectTransform>(), right);
+        }
+
+        public static void AddTop(this Component rt, float top)
+        {
+            AddTop(rt.GetComponent<RectTransform>(), top);
+        }
+
+        public static void AddBottom(this Component rt, float bottom)
+        {
+            AddBottom(rt.GetComponent<RectTransform>(), bottom);
+        }
+
+        public static void AddLeft(this RectTransform rt, float value)
+        {
+            rt.offsetMin = new Vector2(rt.offsetMin.x + value, rt.offsetMin.y);
+        }
+
+        public static void AddRight(this RectTransform rt, float value)
+        {
+            rt.offsetMax = new Vector2(rt.offsetMax.x + value, rt.offsetMax.y);
+        }
+
+        public static void AddTop(this RectTransform rt, float value)
+        {
+            rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y + value);
+        }
+
+        public static void AddBottom(this RectTransform rt, float value)
+        {
+            rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y + value);
+        }
+
+        public static void AddExtents(this Component c, float value)
+        {
+            AddExtents(c.GetComponent<RectTransform>(), value);
+        }
+
+        public static void AddExtents(this RectTransform rt, float value)
+        {
+            rt.offsetMin = new Vector2(rt.offsetMin.x + value, rt.offsetMin.y + value);
+            rt.offsetMax = new Vector2(rt.offsetMax.x - value, rt.offsetMax.y - value);
+        }
     }
 }

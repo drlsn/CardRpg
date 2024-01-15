@@ -10,6 +10,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
+using CardRPG.UI.Features.Gameplay;
+using Core.Unity;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -31,9 +33,10 @@ namespace CardRPG.UI.Gameplay
 
         [SerializeField] private CardRpgIOs.CardIOList _reversedCardsIO;
 
+        [SerializeField] private ArrowTransitionController _arrowController;
+
         private Entities.Gameplay.Card _card;
         private bool _isEnemy;
-
         public RectTransform RT { get; private set; }
         private RectTransform _moveArea;
 
@@ -91,6 +94,26 @@ namespace CardRPG.UI.Gameplay
         }
 
         public void SetDesc(string text) => _descText.text = text;
+
+        public void ShowArrow() => _arrowController.Show();
+        public void HideArrow() => _arrowController.Hide();
+
+        public void GrayOn() 
+        {
+            var grayGO = new GameObject("Gray");
+            grayGO
+                .AddComponent<Image>()
+                .color = new Color(0, 0, 0, 0.5f);
+
+            grayGO.transform.parent = transform;
+            grayGO.transform.StretchToExtents();
+            grayGO.transform.AddExtents(-2);
+        }
+
+        public void GrayOff()
+        {
+            this.Remove<Image>();
+        }
 
         private bool _isMoving;
         public void AnimateMixingCards(

@@ -1,4 +1,5 @@
 using CardRPG.UseCases;
+using Common.Unity.Coroutines;
 using Core.Unity;
 using Core.Unity.Popups;
 using System.Collections;
@@ -82,11 +83,17 @@ namespace CardRPG.UI.Gameplay
                 _moveArea.DestroyChildren();
 
                 _commonDeck.gameObject.SetActive(true);
+
+                _myDeck.ShowArrow();
+                _commonDeck.ShowArrow();
+                _enemyDeck.GrayOn();
+
+                CoroutineExtensions.RunAsCoroutine(() => _msg.Show("Take Cards"), 0.6f, StartCoroutine);
+                
             });
 
             yield return new WaitForSeconds(0.75f);
             _msg.Show("Mixing Cards");
-
         }
     }
 }

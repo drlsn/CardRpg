@@ -26,6 +26,18 @@ namespace Common.Unity.Functional
         public static Func<float> GetTransformRotationZFunc(Transform component) =>
          () => component.rotation.eulerAngles.z;
 
+        public static Func<float> GetTransformScaleXFunc(Transform component) =>
+           () => component.localScale.x;
+
+        public static Action<float> SetTransformScaleXAction(Transform component) =>
+           value => component.SetLocalScale(new Vector3(value, component.localScale.y, component.localScale.z));
+
+        public static Func<float> GetTransformScaleYFunc(Transform component) =>
+            () => component.localScale.y;
+
+        public static Action<float> SetTransformScaleYAction(Transform component) =>
+           value => component.SetLocalScale(new Vector3(component.localScale.x, value, component.localScale.z));
+
         public static Func<Vector2> GetTransformScale2DFunc(Transform component) =>
             () => component.localScale;
 

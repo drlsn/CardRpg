@@ -26,5 +26,20 @@ namespace Core.Functional
 
             return value;
         }
+
+        public static TInput[] And<TInput>(this TInput left, TInput right) =>
+            new[] { left, right };
+
+        public static Action Then(this Action action1, Action action2) =>
+            () => 
+            {
+                action1();
+                action2();
+            };
+
+        public static TResult ThenReturn<TInput, TResult>(this TInput input, TResult result)
+        {
+            return result;
+        }
     }
 }

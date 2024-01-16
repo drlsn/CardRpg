@@ -165,7 +165,7 @@ namespace Core.Unity.Transforms
                 onDone);
         }
 
-        public static void LerpPosition2D(
+        public static Coroutine LerpPosition2D(
             Func<IEnumerator, Coroutine> startCoroutine,
             Transform transform,
             Vector2 targetPosition,
@@ -174,7 +174,7 @@ namespace Core.Unity.Transforms
             Action onDone = null,
             Action<float> onFrame = null)
         {
-            LerpingFunctions.Lerp(
+            return LerpingFunctions.Lerp(
                 Vector2.Lerp,
                 UnityGetSetFuncs.GetTransformPosition2DFunc(transform),
                 UnityGetSetFuncs.SetTransformPosition2DAction(transform),
@@ -187,7 +187,7 @@ namespace Core.Unity.Transforms
                 onFrame);
         }
 
-        public static void LerpRotationZ(
+        public static Coroutine LerpRotationZ(
             Func<IEnumerator, Coroutine> startCoroutine,
             Transform transform,
             float targetValue,
@@ -195,7 +195,7 @@ namespace Core.Unity.Transforms
             LerpFunctionType type = LerpFunctionType.Smooth,
             Action onDone = null)
         {
-            LerpingFunctions.Lerp(
+            return LerpingFunctions.Lerp(
                 Mathf.Lerp,
                 UnityGetSetFuncs.GetTransformRotationZFunc(transform),
                 UnityGetSetFuncs.SetTransformRotationZAction(transform),
@@ -247,7 +247,7 @@ namespace Core.Unity.Transforms
                 onDone);
         }
 
-        public static void LerpScale2D(
+        public static Coroutine LerpScale2D(
             Func<IEnumerator, Coroutine> startCoroutine,
             Transform transform,
             float targetValue,
@@ -255,11 +255,51 @@ namespace Core.Unity.Transforms
             LerpFunctionType type = LerpFunctionType.Smooth,
             Action onDone = null)
         {
-            LerpingFunctions.Lerp(
+            return LerpingFunctions.Lerp(
                 Vector2.Lerp,
                 UnityGetSetFuncs.GetTransformScale2DFunc(transform),
                 UnityGetSetFuncs.SetTransformScale2DAction(transform),
                 new Vector2(targetValue, targetValue),
+                durationSeconds,
+                startCoroutine,
+                UnityGlobalStateFuncs.GetDeltaTime,
+                LerpingFunctions.GetLerpFunction(type),
+                onDone);
+        }
+
+        public static Coroutine LerpScaleX(
+            Func<IEnumerator, Coroutine> startCoroutine,
+            Transform transform,
+            float targetValue,
+            float durationSeconds = 0.75f,
+            LerpFunctionType type = LerpFunctionType.Smooth,
+            Action onDone = null)
+        {
+            return LerpingFunctions.Lerp(
+                Mathf.Lerp,
+                UnityGetSetFuncs.GetTransformScaleXFunc(transform),
+                UnityGetSetFuncs.SetTransformScaleXAction(transform),
+                targetValue,
+                durationSeconds,
+                startCoroutine,
+                UnityGlobalStateFuncs.GetDeltaTime,
+                LerpingFunctions.GetLerpFunction(type),
+                onDone);
+        }
+
+        public static Coroutine LerpScaleY(
+            Func<IEnumerator, Coroutine> startCoroutine,
+            Transform transform,
+            float targetValue,
+            float durationSeconds = 0.75f,
+            LerpFunctionType type = LerpFunctionType.Smooth,
+            Action onDone = null)
+        {
+            return LerpingFunctions.Lerp(
+                Mathf.Lerp,
+                UnityGetSetFuncs.GetTransformScaleYFunc(transform),
+                UnityGetSetFuncs.SetTransformScaleYAction(transform),
+                targetValue,
                 durationSeconds,
                 startCoroutine,
                 UnityGlobalStateFuncs.GetDeltaTime,

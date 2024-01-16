@@ -51,7 +51,7 @@ namespace Core.Unity.UI
             rt.anchorMin = new Vector2(0.0f, 1.0f);
             rt.anchorMax = new Vector2(1.0f, 1.0f);
 
-            rt.SetY(0);
+            rt.SetAnchoredPosY(0);
 
             rt.SetLeft(0);
             rt.SetRight(0);
@@ -64,7 +64,7 @@ namespace Core.Unity.UI
             rt.anchorMin = new Vector2(0.0f, 0.0f);
             rt.anchorMax = new Vector2(1.0f, 0.0f);
 
-            rt.SetY(0);
+            rt.SetAnchoredPosY(0);
 
             rt.SetLeft(0);
             rt.SetRight(0);

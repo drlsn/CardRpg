@@ -21,19 +21,23 @@ namespace CardRPG.UI.Features.Gameplay
             _rt = transform.RT();
         }
 
-        public void Show()
+        public ArrowTransitionController Show()
         {
             gameObject.SetActive(true);
             _isShown = true;
             _image.enabled = true;
             MoveUp();
+
+            return this;
         }
 
-        public void Hide()
+        public ArrowTransitionController Hide()
         {
             gameObject.SetActive(false);
             _image.enabled = false;
             _isShown = false;
+
+            return this;
         }
 
         private void MoveUp()

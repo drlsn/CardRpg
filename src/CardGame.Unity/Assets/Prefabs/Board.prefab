@@ -3282,7 +3282,7 @@ GameObject:
   - component: {fileID: 485799461111521841}
   - component: {fileID: 8953674707184371394}
   m_Layer: 5
-  m_Name: NameText (1)
+  m_Name: DescText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6054,6 +6054,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 742531131120877735}
     m_Modifications:
+    - target: {fileID: 28391750140825017, guid: f61fc0bee8ee3024c8b4751daa068024, type: 3}
+      propertyPath: _descText
+      value: 
+      objectReference: {fileID: 485799461111521841}
     - target: {fileID: 768780389878540374, guid: f61fc0bee8ee3024c8b4751daa068024, type: 3}
       propertyPath: m_SizeDelta.x
       value: 0

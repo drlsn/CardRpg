@@ -8,6 +8,9 @@ namespace Core.Unity
 {
     public static class GameObjectExtensions
     {
+        public static void SetActive(this Component component, bool active = true) =>
+            component.gameObject.SetActive(active);
+
         public static void Destroy<T>(this T component)
             where T : Component
         {

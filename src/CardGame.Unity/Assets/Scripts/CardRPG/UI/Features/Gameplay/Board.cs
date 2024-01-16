@@ -1,14 +1,13 @@
 using CardRPG.UseCases;
 using Common.Unity.Coroutines;
 using Core.Collections;
+using Core.Functional;
 using Core.Unity;
 using Core.Unity.Math;
 using Core.Unity.Popups;
-using Core.Unity.Transforms;
 using Core.Unity.UI;
 using System.Collections;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -76,11 +75,11 @@ namespace CardRPG.UI.Gameplay
             _enemyDeck.gameObject.SetActive(false);
             _myDeck.gameObject.SetActive(false);
 
-            enemyDeck.AnimateMixingCards(isMe: false, _commonDeck.RT);
-            myDeck.AnimateMixingCards(isMe: true, _commonDeck.RT, onDoneFinal: () =>
+            var cardMoveTime = 0.1f;// 0.75f;
+            enemyDeck.AnimateMixingCards(isMe: false, _commonDeck.RT, cardMoveTime);
+            myDeck.AnimateMixingCards(isMe: true, _commonDeck.RT, cardMoveTime, onDoneFinal: () =>
             {
                 _msg.HideMessage();
-
                 CoroutineExtensions.RunAsCoroutine(() => 
                 {
                     _myDeck.gameObject.SetActive(true);
@@ -102,7 +101,8 @@ namespace CardRPG.UI.Gameplay
                 CoroutineExtensions.RunAsCoroutine(() => _msg.Show("Take Cards"), 0.6f, StartCoroutine);
             });
 
-            yield return new WaitForSeconds(0.75f);
+            yield return new WaitForSeconds(cardMoveTime);
+
             _msg.Show("Mixing Cards");
         }
 
@@ -110,14 +110,31 @@ namespace CardRPG.UI.Gameplay
         {
             var row = _playerHandIO.Parent.RT();
 
-            var cards = row
-                .GetComponentsInChildren<Card>()
-                .ForEach(card => card.TranslateTo(row.GetScreenPos(xOffset: -row.rect.width / 2 + card.RT.rect.width / 2 + 5)));
+            var rowWidth = row.GetRTWidth();
+            var cards = row.GetComponentsInChildren<Card>();
+            var count = cards.Length;
+            
+            var spacing = 20;
+            cards.ForEach((card, i) =>
+            {
+                var offsetFactor = (float) (i - (count + 1) / 2f + 0.5f);
+                var xOffset = offsetFactor * (card.RT.rect.width + spacing);
+                var rowPos = row.GetScreenPos(xOffset);
+                card.TranslateTo(rowPos);
+            }); 
 
             var sourceCard = fromCommonDeck ? _commonDeck : _myDeck;
-            var card = Instantiate(sourceCard, row, instantiateInWorldSpace: true) as Card;
+            var card = Instantiate(sourceCard, sourceCard.RT.position + sourceCard.RT.GetPivotOffset(Vector2Ex.Half), Quaternion.identity, row);
+            card.RT.pivot = Vector2Ex.Half;
+            card.RT.TranslateByWidthHalf();
 
-            card.MoveTo(row.RT(), cardMoveTime: 0.75f);
+            var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
+            card.MoveTo(targetPos, cardMoveTime: 0.75f);
+            count++;
+
+            if (count == 6)
+                (_myDeck + _commonDeck)
+                    .ForEach(x => x.HideArrow().ReversedCardButton.DisableAndRemoveListeners()); 
         }
     }
 }

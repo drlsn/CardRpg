@@ -69,6 +69,24 @@ namespace Core.Collections
             return enumerable;
         }
 
+        public static IEnumerable<T> ForEach<T>(this IEnumerable<T> enumerable, Action<T, int, int> itemAction)
+        {
+            if (enumerable == null)
+                return null;
+
+            int i = 0;
+            var count = enumerable.Count();
+            foreach (var item in enumerable)
+            {
+                if (item != null)
+                    itemAction(item, i, count);
+
+                i++;
+            }
+
+            return enumerable;
+        }
+
         public static T AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> aggregator)
         {
             if (source.IsNullOrEmpty())

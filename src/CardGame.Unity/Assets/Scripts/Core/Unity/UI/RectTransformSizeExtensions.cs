@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Core.Unity.Math;
+using UnityEngine;
 
 namespace Core.Unity.UI
 {
@@ -16,11 +17,14 @@ namespace Core.Unity.UI
         public static void SetSize(this RectTransform rt, Vector2 value) =>
             rt.SetSize(value.x, value.y);
 
+        public static float GetRTWidth(this RectTransform rt) => rt.rect.width;
+        public static float GetRTHeight(this RectTransform rt) => rt.rect.height;
+
         public static float GetRTWidth(this Transform transform) =>
-           transform.Get<RectTransform>().rect.width;
+           transform.Get<RectTransform>().GetRTWidth();
 
         public static float GetRTHeight(this Transform transform) =>
-            transform.Get<RectTransform>().rect.height;
+            transform.Get<RectTransform>().GetRTHeight();
 
         public static float GetParentRTWidth(this Transform transform) =>
             transform.parent.GetRTWidth();
@@ -118,5 +122,14 @@ namespace Core.Unity.UI
             rt.offsetMin = new Vector2(rt.offsetMin.x + value, rt.offsetMin.y + value);
             rt.offsetMax = new Vector2(rt.offsetMax.x - value, rt.offsetMax.y - value);
         }
+
+        public static Vector3 GetPivotOffset(this RectTransform rt, Vector2? pivot = null) =>
+            (Vector2Ex.Half - (pivot.HasValue ? pivot.Value : rt.pivot)) * rt.rect.size;
+
+        public static float GetPivotOffsetX(this RectTransform rt) =>
+            (-0.5f + rt.pivot.x) * rt.rect.width;
+
+        public static float GetPivotOffsetY(this RectTransform rt) =>
+            (-0.5f + rt.pivot.y) * rt.rect.height;
     }
 }

@@ -1,11 +1,14 @@
 using CardRPG.UseCases;
 using Common.Unity.Coroutines;
+using Core.Collections;
 using Core.Unity;
 using Core.Unity.Math;
 using Core.Unity.Popups;
+using Core.Unity.Transforms;
 using Core.Unity.UI;
 using System.Collections;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -90,7 +93,12 @@ namespace CardRPG.UI.Gameplay
                     _myDeck.ShowArrow();
                     _commonDeck.ShowArrow();
                     _enemyDeck.GrayOn();
+
+                    _myDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand());
+                    _commonDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(fromCommonDeck: true));
+
                 }, 0.5f, StartCoroutine);
+
                 CoroutineExtensions.RunAsCoroutine(() => _msg.Show("Take Cards"), 0.6f, StartCoroutine);
             });
 
@@ -100,10 +108,16 @@ namespace CardRPG.UI.Gameplay
 
         public void TakeCardToHand(bool fromCommonDeck = false)
         {
-            var sourceCard = fromCommonDeck ? _commonDeck : _myDeck;
-            var card = Instantiate(sourceCard, sourceCard.transform.parent);
+            var row = _playerHandIO.Parent.RT();
 
-            card.MoveTo(_playerHandIO.Parent.RT().rect.center, cardMoveTime: 0.75f);
+            var cards = row
+                .GetComponentsInChildren<Card>()
+                .ForEach(card => card.TranslateTo(row.GetScreenPos(xOffset: -row.rect.width / 2 + card.RT.rect.width / 2 + 5)));
+
+            var sourceCard = fromCommonDeck ? _commonDeck : _myDeck;
+            var card = Instantiate(sourceCard, row, instantiateInWorldSpace: true) as Card;
+
+            card.MoveTo(row.RT(), cardMoveTime: 0.75f);
         }
     }
 }

@@ -12,6 +12,10 @@ using UnityEngine.UI;
 using System;
 using CardRPG.UI.Features.Gameplay;
 using Core.Unity;
+using System.Diagnostics.Tracing;
+using Core.Basic;
+using Common.Unity.Coroutines;
+using System.Collections.Specialized;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -63,7 +67,7 @@ namespace CardRPG.UI.Gameplay
             _cardButton.onClick.RemoveAllListeners();
             _cardButton.onClick.AddListener(() =>
             {
-                if (_isMoving)
+                if (!_moveOrderCounter.IsEmpty)
                     return;
                 
                 OnCardSelected?.Invoke(_card, _isEnemy);
@@ -72,7 +76,7 @@ namespace CardRPG.UI.Gameplay
             ReversedCardButton.onClick.RemoveAllListeners();
             ReversedCardButton.onClick.AddListener(() => 
             {
-                if (_isMoving)
+                if (!_moveOrderCounter.IsEmpty)
                     return;
             });
         }
@@ -116,7 +120,9 @@ namespace CardRPG.UI.Gameplay
             this.Remove<Image>();
         }
 
-        private bool _isMoving;
+        private Counter _moveOrderCounter = new();
+        private OrderedDictionary _moveOrderTimes = new();
+
         public void AnimateMixingCards(
             bool isMe,
             RectTransform commonDeckTarget,
@@ -259,38 +265,66 @@ namespace CardRPG.UI.Gameplay
             }
         }
 
-        public void MoveTo(
+        public void TranslateTo(
             Vector2 targetPos,
-            float cardMoveTime)
+            float cardMoveTime = 0.75f)
         {
-            var initialPos = RT.position;
-
-            LerpFunctions.BeginLerp(RT, _moveArea, onDone =>
+            var delaySeconds = 0f;
+            if (_moveOrderTimes.Count > 0)
+                delaySeconds = (float) ((DateTime.UtcNow.Ticks - (long) _moveOrderTimes[_moveOrderTimes.Count - 1]) / 1_000_000);
+            Debug.Log($"seconds: {delaySeconds}");
+            CoroutineExtensions.RunAsCoroutine(() => 
             {
                 LerpFunctions.LerpPosition2D(
                     StartCoroutine,
                     RT,
                     targetPos,
-                    cardMoveTime);
+                    onDone: () => _moveOrderCounter.Decrease());
+            }, 
+            delaySeconds: delaySeconds + 0.1f, 
+            StartCoroutine);
 
-                LerpFunctions.LerpRotationZ(
-                    StartCoroutine,
-                    RT,
-                    360,
-                    cardMoveTime);
+            _moveOrderCounter.Increase();
+        }
 
-                LerpFunctions.LerpScale2D(
-                    StartCoroutine,
-                    RT,
-                    1.5f,
-                    cardMoveTime / 2,
-                    onDone: () =>
-                        LerpFunctions.LerpScale2D(
-                            StartCoroutine,
-                            RT,
-                            1f,
-                            cardMoveTime / 2));
-            });
+        public void MoveTo(
+            RectTransform target,
+            float cardMoveTime = 0.75f)
+        {
+            _moveOrderCounter.Increase();
+
+            var timeId = Guid.NewGuid().ToString();
+            _moveOrderTimes.Add(timeId, DateTime.UtcNow.Ticks);
+
+            RT.pivot = Vector2.one / 2;
+            LerpFunctions.LerpPosition2D(
+                StartCoroutine,
+                RT,
+                target.GetScreenPos(),
+                cardMoveTime,
+                onDone: () =>
+                {
+                    _moveOrderCounter.Decrease();
+                    _moveOrderTimes.Remove(timeId);
+                });
+
+            LerpFunctions.LerpRotationZ(
+                StartCoroutine,
+                RT,
+                360,
+                cardMoveTime);
+
+            LerpFunctions.LerpScale2D(
+                StartCoroutine,
+                RT,
+                1.5f,
+                cardMoveTime / 2,
+                onDone: () =>
+                    LerpFunctions.LerpScale2D(
+                        StartCoroutine,
+                        RT,
+                        1f,
+                        cardMoveTime / 2));
         }
     }
 }

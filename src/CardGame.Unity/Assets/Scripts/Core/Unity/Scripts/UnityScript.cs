@@ -26,7 +26,7 @@ namespace Core.Unity.Scripts
                 StartCoroutine);
             };
 
-        protected Coroutine RunAsCoroutine(Action action) =>
-            CoroutineExtensions.RunAsCoroutine(action, StartCoroutine);
+        protected Coroutine RunAsCoroutine(Action action, float delaySeconds = 0f) =>
+            CoroutineExtensions.RunAsCoroutine(action, delaySeconds, StartCoroutine);
     }
 }

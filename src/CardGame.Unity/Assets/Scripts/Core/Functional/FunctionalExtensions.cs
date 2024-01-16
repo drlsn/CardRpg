@@ -42,6 +42,12 @@ namespace Core.Functional
             return input;
         }
 
+        public static T Then<T>(this T input, Action<T> action)
+        {
+            action?.Invoke(input);
+            return input;
+        }
+
         public static TResult ThenReturn<TInput, TResult>(this TInput input, TResult result)
         {
             return result;

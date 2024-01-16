@@ -124,7 +124,7 @@ namespace Core.Unity.UI
         }
 
         public static Vector3 GetPivotOffset(this RectTransform rt, Vector2? pivot = null) =>
-            (Vector2Ex.Half - (pivot.HasValue ? pivot.Value : rt.pivot)) * rt.rect.size;
+            (Vector2X.Half - (pivot.HasValue ? pivot.Value : rt.pivot)) * rt.rect.size;
 
         public static float GetPivotOffsetX(this RectTransform rt) =>
             (-0.5f + rt.pivot.x) * rt.rect.width;

@@ -21,5 +21,7 @@ namespace Core.Unity.Math
                 source.x * other.x,
                 source.y * other.y,
                 source.z * other.z);
+
+        public static Vector2 ToVector2(this Vector3 vector) => vector;
     }
 }

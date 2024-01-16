@@ -24,11 +24,18 @@ namespace Core.Unity
             components.ToList().ForEach(c => c.Destroy());
         }
 
-        public static void DestroyChildren<T>(this T component)
-            where T : Component
+        public static void DestroyChildren(this Component component)
         {
             foreach (var c in component.transform)
                 Destroy(c.ToTransform());
+        }
+
+        public static void DestroyChildren<Target>(this Component component)
+            where Target : Component
+        {
+            foreach (var c in component.transform)
+                if (c is Target)
+                    Destroy(c.ToTransform());
         }
 
         public static void Destroy(this UnityEngine.GameObject gameObject)
@@ -146,6 +153,13 @@ namespace Core.Unity
                     GameObject.Destroy(c);
             }
 
+            if (@object is GameObject go)
+            {
+                var c = go.GetComponent<T>();
+                if (c)
+                    GameObject.Destroy(c);
+            }
+
             return default;
         }
 
@@ -252,12 +266,15 @@ namespace Core.Unity
 
         public static IEnumerable<T> GetChildren<T>(this Component component)
         {
+            var result = new List<T>();
             foreach (Transform t in component.transform)
             {
                 T child = t.GetComponent<T>();
                 if (child != null)
-                    yield return child;
+                    result.Add(child);
             }
+
+            return result;
         }
 
         public static IEnumerable<T> GetSiblingsAfter<T>(this Component component)

@@ -1,19 +1,16 @@
 using CardRPG.UseCases;
 using Common.Unity.Coroutines;
+using Core.Basic;
 using Core.Collections;
 using Core.Functional;
 using Core.Unity;
-using Core.Unity.Functional;
 using Core.Unity.Math;
 using Core.Unity.Popups;
 using Core.Unity.Scripts;
 using Core.Unity.UI;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-using static Core.Unity.Functional.Delegates;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -60,72 +57,43 @@ namespace CardRPG.UI.Gameplay
             RunAsCoroutine(steps.Execute);
         }
 
-        public class ActionStepController
-        {
-            private List<Callback> _callbacks = new();
-            private int _index;
-
-            public static ActionStepController operator +(ActionStepController left, Callback right) =>
-                right
-                    .AddTo(left._callbacks)
-                    .ThenReturn(left);
-
-            public void Execute()
-            {
-                _index = 0;
-                ExecuteNextCallback();
-            }
-
-            private void ExecuteNextCallback()
-            {
-                if (_index < _callbacks.Count)
-                {
-                    var currentCallback = _callbacks[_index];
-
-                    Action onDone = () =>
-                    {
-                        _index++;
-                        ExecuteNextCallback();
-                    };
-
-                    currentCallback(onDone);
-                }
-            }
-        }
-
         private void AnimateMixingCards(Action onDone)
         {
-            Debug.Log("AnimateMixingCards");
             var enemyDeck = _enemyDeck.Instantiate(_enemyDeck.transform.parent);
             var myDeck = _myDeck.Instantiate(_myDeck.transform.parent);
+
             _enemyDeck.gameObject.SetActive(false);
             _myDeck.gameObject.SetActive(false);
 
             var cardMoveTime = 0.75f;
-            enemyDeck.AnimateMixingCards(isMe: false, _commonDeck.RT, cardMoveTime, onDone: onDone);
             myDeck.AnimateMixingCards(isMe: true, _commonDeck.RT, cardMoveTime);
+            enemyDeck.AnimateMixingCards(isMe: false, _commonDeck.RT, cardMoveTime, onDone: 
+                onDone.Then(enemyDeck.Destroy).Then(myDeck.Destroy));
         }
 
         private void StartTakeCardsToHand(Action onDone)
         {
             _msg.HideMessage();
-            CoroutineExtensions.RunAsCoroutine(() =>
-            {
-                _myDeck.gameObject.SetActive(true);
-                _enemyDeck.gameObject.SetActive(true);
 
-                _moveArea.DestroyChildren();
+            _myDeck.gameObject.SetActive(true);
+            _enemyDeck.gameObject.SetActive(true);
 
-                _commonDeck.gameObject.SetActive(true);
+            _moveArea.DestroyChildren();
 
-                _myDeck.ShowArrow();
-                _commonDeck.ShowArrow();
-                _enemyDeck.GrayOn();
+            _commonDeck.gameObject.SetActive(true);
 
-                _myDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone));
-                _commonDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone, fromCommonDeck: true));
+            _myDeck.ShowArrow();
+            _commonDeck.ShowArrow();
+            _enemyDeck.GrayOn();
 
-            }, 0.5f, StartCoroutine);
+            _myDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone));
+            _commonDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone, fromCommonDeck: true));
+
+            //CoroutineExtensions.RunAsCoroutine(() =>
+            //{
+                
+
+            //}, 0.5f, StartCoroutine);
 
             //CoroutineExtensions.RunAsCoroutine(() => _msg.Show("Take Cards"), 0.6f, StartCoroutine);
         }
@@ -148,9 +116,9 @@ namespace CardRPG.UI.Gameplay
             }); 
 
             var sourceCard = fromCommonDeck ? _commonDeck : _myDeck;
-            var card = Instantiate(sourceCard, sourceCard.RT.position + sourceCard.RT.GetPivotOffset(Vector2Ex.Half), Quaternion.identity, row);
-            card.RT.pivot = Vector2Ex.Half;
-            card.RT.TranslateByWidthHalf();
+            var card = Instantiate(sourceCard, sourceCard.RT.position, Quaternion.identity, row);
+            card.RT.pivot = Vector2X.Half;
+            card.RT.AddAnchoredPosX(card.RT.GetPivotOffsetX());
 
             var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
             card.MoveTo(targetPos, cardMoveTime: 0.75f);

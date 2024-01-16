@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core.Unity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,6 +12,9 @@ namespace Core.Collections
 
         public static IEnumerable<T> NotNull<T>(this IEnumerable<T> source) =>
             source.Where(x => x is not null);
+
+        public static IEnumerable<T> Select<T>(this int index, Func<T> selector) =>
+            Enumerable.Range(0, index).Select(i => selector());
 
         public static void ForEach(this int index, Action action)
         {

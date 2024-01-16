@@ -1,6 +1,8 @@
 ﻿using Common.Unity.Functional;
 using Core.Collections;
 using Core.Maths;
+using Core.Unity.Math;
+using Core.Unity.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -362,37 +364,19 @@ namespace Core.Unity.Transforms
 
         public static void BeginLerp(
             RectTransform rt,
-            RectTransform moveParent, 
             Action<Action> lerpAction)
         {
-            var previousScale = rt.localScale;
+            var canvas = rt.GetOrAddComponent<Canvas>();
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = 1000;
+
             var previousPivot = rt.pivot;
-            var previousParent = rt.parent;
-
-            if (rt.parent != moveParent)
-            {
-                var previousPos = rt.position;
-
-                rt.pivot = new Vector2(0.5f, 0.5f);
-                var offset = (rt.pivot - previousPivot) * new Vector2(rt.rect.width * rt.lossyScale.x, rt.rect.height * rt.lossyScale.x);
-
-                rt.SetParent(moveParent.transform, worldPositionStays: true);
-
-                var newPos = previousPos;
-                newPos.x += offset.x;
-                newPos.y += offset.y;
-                rt.position = newPos;
-                rt.localScale = previousScale;
-            }
+            rt.pivot = Vector2X.Half;
 
             lerpAction(() =>
             {
-                if (rt.parent != moveParent)
-                {
-                    rt.SetParent(previousParent, worldPositionStays: false);
-                    rt.pivot = previousPivot;
-                    rt.localScale = previousScale;
-                }
+                rt.pivot = Vector2X.Half;
+                rt.gameObject.Remove<Canvas>();
             });
         }
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Core.Unity.Math;
+using UnityEngine;
 
 namespace Core.Unity
 {
@@ -9,10 +10,8 @@ namespace Core.Unity
         {
             if (prefab.transform is RectTransform rt)
             {
-                var instantiated = Object.Instantiate(prefab, parent.ToTransform()).GetComponent<T>();
-                instantiated.GetComponent<RectTransform>().anchoredPosition = rt.anchoredPosition;
-
-                return instantiated;
+                var pos = rt.position.ToVector2() + (Vector2X.Half - rt.pivot) * rt.rect.size;
+                return Object.Instantiate(prefab, pos, rt.rotation, parent).GetComponent<T>();
             }
 
             return Object.Instantiate(prefab, parent.ToTransform()).GetComponent<T>();

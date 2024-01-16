@@ -1,5 +1,4 @@
 using CardRPG.UseCases;
-using Common.Unity.Coroutines;
 using Core.Basic;
 using Core.Collections;
 using Core.Functional;
@@ -88,14 +87,6 @@ namespace CardRPG.UI.Gameplay
 
             _myDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone));
             _commonDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone, fromCommonDeck: true));
-
-            //CoroutineExtensions.RunAsCoroutine(() =>
-            //{
-                
-
-            //}, 0.5f, StartCoroutine);
-
-            //CoroutineExtensions.RunAsCoroutine(() => _msg.Show("Take Cards"), 0.6f, StartCoroutine);
         }
 
         public void TakeCardToHand(Action onDone, bool fromCommonDeck = false)
@@ -116,9 +107,9 @@ namespace CardRPG.UI.Gameplay
             }); 
 
             var sourceCard = fromCommonDeck ? _commonDeck : _myDeck;
-            var card = Instantiate(sourceCard, sourceCard.RT.position, Quaternion.identity, row);
-            card.RT.pivot = Vector2X.Half;
-            card.RT.AddAnchoredPosX(card.RT.GetPivotOffsetX());
+            var card = sourceCard.Instantiate(row);
+            //card.RT.pivot = Vector2X.Half;
+            //card.RT.AddAnchoredPosX(card.RT.GetPivotOffsetX());
 
             var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
             card.MoveTo(targetPos, cardMoveTime: 0.75f);

@@ -128,11 +128,11 @@ namespace CardRPG.UI.Gameplay
         {
             var initialPos = RT.position;
 
-            var targetPos = ScreenEx.Middle.AddX((RT.rect.width + 80) * (!isMe ? 1 : -1));
-
+            var targetPos = _moveArea.GetScreenPos(xOffset: RT.rect.width * 2 * (isMe ? -1 : 1));
+             
             LerpFunctions.BeginLerp(RT, _moveArea, onDone =>
             {
-                LerpFunctions.LerpPosition2D(
+                LerpFunctions.LerpPosition2D(   
                     StartCoroutine,
                     RT,
                     targetPos,
@@ -220,23 +220,12 @@ namespace CardRPG.UI.Gameplay
                 var card = _reversedCardsIO.Object;
                 card.SetDesc("Common\nDeck");
 
-                Debug.Log($"commonDeck: {commonDeckTarget.position}");
-                Debug.Log($"commonDeck.lossyScale: {commonDeckTarget.lossyScale}");
-                Debug.Log($"commonDeck.localScale: {commonDeckTarget.localScale}");
-                Debug.Log($"commonDeck.pivot: {commonDeckTarget.pivot}");
-                Debug.Log($"commonDeck.rect: {commonDeckTarget.rect}");
-                Debug.Log($"commonDeck.sizeDelta: {commonDeckTarget.sizeDelta}");
-                Debug.Log($"card: {card.RT.position}");
-                Debug.Log($"card.lossyScale: {card.RT.lossyScale}");
-                Debug.Log($"card.scale: {card.RT.localScale}");
-                Debug.Log($"card.pivot: {card.RT.pivot}");
-
                 LerpFunctions.BeginLerp(card.RT, _moveArea, onDone =>
                 {
                     LerpFunctions.LerpPosition2D(
                         StartCoroutine,
                         card.RT,
-                        commonDeckTarget.GetPosFor(card.RT),
+                        commonDeckTarget.GetScreenPos(),
                         cardMoveTime,
                         onDone: onDoneFinal);
                 });

@@ -10,12 +10,13 @@ namespace Core.Unity.UI
         public static void SetY(this RectTransform rt, float value) =>
             rt.anchoredPosition = new(rt.anchoredPosition.x, value);
 
-        public static Vector2 GetPosFor(this RectTransform rt, RectTransform other)
-        {
-            return new Vector3(
-                rt.position.x + rt.rect.width * (other.pivot.x - rt.pivot.x) * rt.lossyScale.x,
-                rt.position.y + rt.rect.height * (other.pivot.y - rt.pivot.y) * rt.lossyScale.y,
-                0);
-        }
+        public static Vector2 GetScreenPos(this RectTransform rt, float xOffset = 0, float yOffset = 0) =>
+            new Vector2(
+                rt.position.x + 
+                    rt.rect.width * (0.5f - rt.pivot.x) * rt.lossyScale.x +
+                    xOffset * rt.lossyScale.x,
+                rt.position.y + 
+                    rt.rect.height * (0.5f - rt.pivot.y) * rt.lossyScale.y +
+                    yOffset * rt.lossyScale.y);
     }
 }

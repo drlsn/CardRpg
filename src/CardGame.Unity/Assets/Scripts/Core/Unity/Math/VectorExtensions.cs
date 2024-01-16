@@ -15,5 +15,11 @@ namespace Core.Unity.Math
 
         public static Vector3 AddY(this Vector3 vector, float value) =>
             new Vector2(vector.x, vector.y + value);
+
+        public static Vector3 Multiply(this Vector3 source, Vector3 other) =>
+            new Vector3(
+                source.x * other.x,
+                source.y * other.y,
+                source.z * other.z);
     }
 }

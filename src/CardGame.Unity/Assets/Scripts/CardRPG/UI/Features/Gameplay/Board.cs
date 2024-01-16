@@ -3,15 +3,21 @@ using Common.Unity.Coroutines;
 using Core.Collections;
 using Core.Functional;
 using Core.Unity;
+using Core.Unity.Functional;
 using Core.Unity.Math;
 using Core.Unity.Popups;
+using Core.Unity.Scripts;
 using Core.Unity.UI;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using static Core.Unity.Functional.Delegates;
 
 namespace CardRPG.UI.Gameplay
 {
-    public class Board : MonoBehaviour
+    public class Board : UnityScript
     {
         // Enemy
         [SerializeField] private CardRpgIOs.CardIOList _enemiesBackIO;
@@ -44,69 +50,87 @@ namespace CardRPG.UI.Gameplay
 
         public void Rebuild(GetGameStateQueryOut dto)
         {
-            StartCoroutine(Move());
+            var steps = new ActionStepController();
 
-            //_enemiesBackIO.Destroy();
-            //_enemiesHandIO.Destroy();
-            //_enemiesBattleIO.Destroy();
-            //_playerBattleIO.Destroy();
-            //_playerHandIO.Destroy();
-            //_playerBackIO.Destroy();
+            steps += onDone => _msg.Show("Mixing Cards").Then(onDone);
+            steps += AnimateMixingCards;
 
-            //var player = dto.Game.Players.OfId(dto.PlayerId);
-            //var enemy = dto.Game.Players.NotOfId(dto.PlayerId);
+            steps += StartTakeCardsToHand;
 
-            //player.Cards.ForEach(card => _playerBackIO.Instantiate().Init(card, isEnemy: false));
-            //enemy.Cards.ForEach(card => _enemiesBackIO.Instantiate().Init(card, isEnemy: true));
-
-            //_playerActionController.Init(
-            //    player.Id.Value,
-            //    _playerBackIO.Objects.ToArray(),
-            //    enemy.Id.Value,
-            //    _enemiesBackIO.Objects.ToArray());
+            RunAsCoroutine(steps.Execute);
         }
 
-        private IEnumerator Move()
+        public class ActionStepController
         {
-            yield return new WaitForSeconds(1);
+            private List<Callback> _callbacks = new();
+            private int _index;
 
+            public static ActionStepController operator +(ActionStepController left, Callback right) =>
+                right
+                    .AddTo(left._callbacks)
+                    .ThenReturn(left);
+
+            public void Execute()
+            {
+                _index = 0;
+                ExecuteNextCallback();
+            }
+
+            private void ExecuteNextCallback()
+            {
+                if (_index < _callbacks.Count)
+                {
+                    var currentCallback = _callbacks[_index];
+
+                    Action onDone = () =>
+                    {
+                        _index++;
+                        ExecuteNextCallback();
+                    };
+
+                    currentCallback(onDone);
+                }
+            }
+        }
+
+        private void AnimateMixingCards(Action onDone)
+        {
+            Debug.Log("AnimateMixingCards");
             var enemyDeck = _enemyDeck.Instantiate(_enemyDeck.transform.parent);
             var myDeck = _myDeck.Instantiate(_myDeck.transform.parent);
             _enemyDeck.gameObject.SetActive(false);
             _myDeck.gameObject.SetActive(false);
 
-            var cardMoveTime = 0.1f;// 0.75f;
-            enemyDeck.AnimateMixingCards(isMe: false, _commonDeck.RT, cardMoveTime);
-            myDeck.AnimateMixingCards(isMe: true, _commonDeck.RT, cardMoveTime, onDoneFinal: () =>
-            {
-                _msg.HideMessage();
-                CoroutineExtensions.RunAsCoroutine(() => 
-                {
-                    _myDeck.gameObject.SetActive(true);
-                    _enemyDeck.gameObject.SetActive(true);
-
-                    _moveArea.DestroyChildren();
-
-                    _commonDeck.gameObject.SetActive(true);
-
-                    _myDeck.ShowArrow();
-                    _commonDeck.ShowArrow();
-                    _enemyDeck.GrayOn();
-
-                    _myDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand());
-                    _commonDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(fromCommonDeck: true));
-
-                }, 0.5f, StartCoroutine);
-
-                CoroutineExtensions.RunAsCoroutine(() => _msg.Show("Take Cards"), 0.6f, StartCoroutine);
-            });
-
-            yield return new WaitForSeconds(cardMoveTime);
-
-            _msg.Show("Mixing Cards");
+            var cardMoveTime = 0.75f;
+            enemyDeck.AnimateMixingCards(isMe: false, _commonDeck.RT, cardMoveTime, onDone: onDone);
+            myDeck.AnimateMixingCards(isMe: true, _commonDeck.RT, cardMoveTime);
         }
 
-        public void TakeCardToHand(bool fromCommonDeck = false)
+        private void StartTakeCardsToHand(Action onDone)
+        {
+            _msg.HideMessage();
+            CoroutineExtensions.RunAsCoroutine(() =>
+            {
+                _myDeck.gameObject.SetActive(true);
+                _enemyDeck.gameObject.SetActive(true);
+
+                _moveArea.DestroyChildren();
+
+                _commonDeck.gameObject.SetActive(true);
+
+                _myDeck.ShowArrow();
+                _commonDeck.ShowArrow();
+                _enemyDeck.GrayOn();
+
+                _myDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone));
+                _commonDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone, fromCommonDeck: true));
+
+            }, 0.5f, StartCoroutine);
+
+            //CoroutineExtensions.RunAsCoroutine(() => _msg.Show("Take Cards"), 0.6f, StartCoroutine);
+        }
+
+        public void TakeCardToHand(Action onDone, bool fromCommonDeck = false)
         {
             var row = _playerHandIO.Parent.RT();
 
@@ -134,7 +158,8 @@ namespace CardRPG.UI.Gameplay
 
             if (count == 6)
                 (_myDeck + _commonDeck)
-                    .ForEach(x => x.HideArrow().ReversedCardButton.DisableAndRemoveListeners()); 
+                    .ForEach(x => x.HideArrow().ReversedCardButton.DisableAndRemoveListeners())
+                    .Then(onDone); 
         }
     }
 }

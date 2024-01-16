@@ -365,6 +365,7 @@ namespace Core.Unity.Transforms
             RectTransform moveParent, 
             Action<Action> lerpAction)
         {
+            var previousScale = rt.localScale;
             var previousPivot = rt.pivot;
             var previousParent = rt.parent;
 
@@ -381,6 +382,7 @@ namespace Core.Unity.Transforms
                 newPos.x += offset.x;
                 newPos.y += offset.y;
                 rt.position = newPos;
+                rt.localScale = previousScale;
             }
 
             lerpAction(() =>
@@ -389,6 +391,7 @@ namespace Core.Unity.Transforms
                 {
                     rt.SetParent(previousParent, worldPositionStays: false);
                     rt.pivot = previousPivot;
+                    rt.localScale = previousScale;
                 }
             });
         }

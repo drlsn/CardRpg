@@ -133,13 +133,13 @@ namespace CardRPG.UI.Gameplay
             float mixCardMoveTime = 0.25f,
             float cascadeCardTimeOffsetFactor = 0.66f,
             int cardCount = 7,
-            Action onDoneFinal = null)
+            Action onDone = null)
         {
             var initialPos = RT.position;
 
             var targetPos = _moveArea.GetScreenPos(xOffset: RT.rect.width * 2 * (isMe ? -1 : 1));
              
-            LerpFunctions.BeginLerp(RT, _moveArea, onDone =>
+            LerpFunctions.BeginLerp(RT, _moveArea, restore =>
             {
                 LerpFunctions.LerpPosition2D(   
                     StartCoroutine,
@@ -171,18 +171,18 @@ namespace CardRPG.UI.Gameplay
             void AnimateCascade(Action onDone)
             {
                 if (isMe)
-                    AnimateDeckCascade(ScreenEx.Middle, mixCardMoveTime, cascadeCardTimeOffsetFactor, cardCount, onDone.Then(MoveCommonDeckBack));
+                    AnimateDeckCascade(ScreenEx.Middle, mixCardMoveTime, cascadeCardTimeOffsetFactor, cardCount, onDone);
                 else
                     CoroutineExtensions.RunAsCoroutine(
-                        () => AnimateDeckCascade(ScreenEx.Middle, mixCardMoveTime, cascadeCardTimeOffsetFactor, cardCount, onDone),  
+                        () => AnimateDeckCascade(ScreenEx.Middle, mixCardMoveTime, cascadeCardTimeOffsetFactor, cardCount, onDone.Then(MoveCommonDeckBack)),  
                         delaySeconds: mixCardMoveTime / 2,
                         StartCoroutine);
             }
 
             void MoveOwnDeckBack()
             {
-                isMe.IfFalseDo(_reversedCardsIO.Destroy);
-                LerpFunctions.BeginLerp(RT, _moveArea, lerpAction =>
+                isMe.IfTrueDo(_reversedCardsIO.Destroy);
+                LerpFunctions.BeginLerp(RT, _moveArea, restore =>
                 {
                     LerpFunctions.LerpPosition2D(
                         StartCoroutine,
@@ -216,14 +216,14 @@ namespace CardRPG.UI.Gameplay
                 var card = _reversedCardsIO.Object;
                 card.SetDesc("Common\nDeck");
 
-                LerpFunctions.BeginLerp(card.RT, _moveArea, lerpAction =>
+                LerpFunctions.BeginLerp(card.RT, _moveArea, restore =>
                 {
                     LerpFunctions.LerpPosition2D(
                         StartCoroutine,
                         card.RT,
                         commonDeckTarget.GetScreenPos(),
                         cardMoveTime,
-                        onDone: onDoneFinal);
+                        onDone: onDone);
                 });
             }
         }
@@ -247,7 +247,7 @@ namespace CardRPG.UI.Gameplay
                 card.RT.localScale = new Vector3(1, 1, 1);
                 RTPresetsExtensions.StretchToMiddle(card);
 
-                LerpFunctions.BeginLerp(card.RT, _moveArea, onDoneLocal =>
+                LerpFunctions.BeginLerp(card.RT, _moveArea, restore =>
                 {
                     LerpFunctions.LerpPosition2D(
                         StartCoroutine,

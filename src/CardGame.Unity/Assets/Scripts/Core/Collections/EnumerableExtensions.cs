@@ -38,6 +38,19 @@ namespace Core.Collections
             }
         }
 
+        public static IEnumerable<T> ForEachReversed<T>(this IEnumerable<T> enumerable, Action<T> itemAction)
+        {
+            var list = enumerable.ToList();
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                var item = list[i];
+                if (item != null)
+                    itemAction(item);
+            }
+
+            return enumerable;
+        }
+
         public static IEnumerable<T> ForEach<T>(this IEnumerable<T> enumerable, Action<T> itemAction)
         {
             if (enumerable == null)

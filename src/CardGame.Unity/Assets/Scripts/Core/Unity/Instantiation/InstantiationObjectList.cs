@@ -42,13 +42,13 @@ namespace Core.Unity
 
         public void Destroy(int index, int count = 1)
         {
-            if (count < 1)
+            if (count < 1 || _instantiated.Count == 0)
                 return;
 
             if (count > _instantiated.Count - index)
                 count = _instantiated.Count - index;
             
-            Enumerable.Range(index, count).ForEach(i =>
+            Enumerable.Range(index, count).ForEachReversed(i =>
             {
                 var inst = _instantiated[index];
                 if (inst == null)

@@ -1,7 +1,9 @@
 using CardRPG.UseCases;
 using Common.Unity.Coroutines;
 using Core.Unity;
+using Core.Unity.Math;
 using Core.Unity.Popups;
+using Core.Unity.UI;
 using System.Collections;
 using UnityEngine;
 
@@ -66,34 +68,42 @@ namespace CardRPG.UI.Gameplay
         {
             yield return new WaitForSeconds(1);
 
-            var myDeck = Instantiate(_myDeck, _myDeck.transform.parent);
-            var enemyDeck = Instantiate(_enemyDeck, _enemyDeck.transform.parent);
-
-            _myDeck.gameObject.SetActive(false);
+            var enemyDeck = _enemyDeck.Instantiate(_enemyDeck.transform.parent);
+            var myDeck = _myDeck.Instantiate(_myDeck.transform.parent);
             _enemyDeck.gameObject.SetActive(false);
+            _myDeck.gameObject.SetActive(false);
 
-            enemyDeck.AnimateMixingCards(isMe: false);
-            myDeck.AnimateMixingCards(isMe: true, onDoneFinal: () =>
+            enemyDeck.AnimateMixingCards(isMe: false, _commonDeck.RT);
+            myDeck.AnimateMixingCards(isMe: true, _commonDeck.RT, onDoneFinal: () =>
             {
                 _msg.HideMessage();
-                
-                _myDeck.gameObject.SetActive(true);
-                _enemyDeck.gameObject.SetActive(true);
 
-                _moveArea.DestroyChildren();
+                CoroutineExtensions.RunAsCoroutine(() => 
+                {
+                    _myDeck.gameObject.SetActive(true);
+                    _enemyDeck.gameObject.SetActive(true);
 
-                _commonDeck.gameObject.SetActive(true);
+                    _moveArea.DestroyChildren();
 
-                _myDeck.ShowArrow();
-                _commonDeck.ShowArrow();
-                _enemyDeck.GrayOn();
+                    _commonDeck.gameObject.SetActive(true);
 
+                    _myDeck.ShowArrow();
+                    _commonDeck.ShowArrow();
+                    _enemyDeck.GrayOn();
+                }, 0.5f, StartCoroutine);
                 CoroutineExtensions.RunAsCoroutine(() => _msg.Show("Take Cards"), 0.6f, StartCoroutine);
-                
             });
 
             yield return new WaitForSeconds(0.75f);
             _msg.Show("Mixing Cards");
+        }
+
+        public void TakeCardToHand(bool fromCommonDeck = false)
+        {
+            var sourceCard = fromCommonDeck ? _commonDeck : _myDeck;
+            var card = Instantiate(sourceCard, sourceCard.transform.parent);
+
+            card.MoveTo(_playerHandIO.Parent.RT().rect.center, cardMoveTime: 0.75f);
         }
     }
 }

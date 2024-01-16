@@ -2761,12 +2761,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4efc1276ac04fa4ab2e273f6a49d8ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  RT: {fileID: 8827368449350033649}
   _nameText: {fileID: 7784721795142040849}
   _descText: {fileID: 0}
   _hpText: {fileID: 2732770406256710601}
   _attackText: {fileID: 3164898183006682611}
   _cardButton: {fileID: 4265078936453471430}
-  _reversedCardButton: {fileID: 0}
+  ReversedCardButton: {fileID: 5932163588766109673}
   _image: {fileID: 5387587287167745181}
   _reversedCardsIO:
     _parent: {fileID: 8827368449350033649}

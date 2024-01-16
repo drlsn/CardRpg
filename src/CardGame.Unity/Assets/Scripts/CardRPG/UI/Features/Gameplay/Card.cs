@@ -20,6 +20,8 @@ namespace CardRPG.UI.Gameplay
         public delegate void OnCardSelectedDelegate(Entities.Gameplay.Card card, bool isEnemy);
         public event OnCardSelectedDelegate OnCardSelected;
 
+        public RectTransform RT;
+
         [SerializeField] private TMP_Text _nameText;
         [SerializeField] private TMP_Text _descText;
 
@@ -27,7 +29,7 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private TMP_Text _attackText;
 
         [SerializeField] private Button _cardButton;
-        [SerializeField] private Button _reversedCardButton;
+        public Button ReversedCardButton;
 
         [SerializeField] private Image _image;
 
@@ -37,14 +39,12 @@ namespace CardRPG.UI.Gameplay
 
         private Entities.Gameplay.Card _card;
         private bool _isEnemy;
-        public RectTransform RT { get; private set; }
         private RectTransform _moveArea;
 
         private static CardImages _cardImages;
 
         private void Awake()
         {
-            RT = GetComponent<RectTransform>();
             _cardImages ??= FindObjectOfType<CardImages>();
             _moveArea = GameObject.FindGameObjectWithTag("MoveArea").RT();
         }
@@ -69,8 +69,8 @@ namespace CardRPG.UI.Gameplay
                 OnCardSelected?.Invoke(_card, _isEnemy);
             });
 
-            _reversedCardButton.onClick.RemoveAllListeners();
-            _reversedCardButton.onClick.AddListener(() => 
+            ReversedCardButton.onClick.RemoveAllListeners();
+            ReversedCardButton.onClick.AddListener(() => 
             {
                 if (_isMoving)
                     return;
@@ -107,6 +107,7 @@ namespace CardRPG.UI.Gameplay
 
             grayGO.transform.parent = transform;
             grayGO.transform.StretchToExtents();
+            grayGO.transform.localScale = Vector3.one;
             grayGO.transform.AddExtents(-2);
         }
 
@@ -118,6 +119,7 @@ namespace CardRPG.UI.Gameplay
         private bool _isMoving;
         public void AnimateMixingCards(
             bool isMe,
+            RectTransform commonDeckTarget,
             float cardMoveTime = 0.75f,
             float mixCardMoveTime = 0.25f,
             float timeOffsetFactor = 0.66f,
@@ -137,6 +139,7 @@ namespace CardRPG.UI.Gameplay
                     cardMoveTime,
                     onDone: AnimateCascade);
 
+                initialPos = RT.position;
                 LerpFunctions.LerpRotationZ(
                     StartCoroutine,
                     RT,
@@ -185,7 +188,7 @@ namespace CardRPG.UI.Gameplay
                         RT,
                         initialPos,
                         cardMoveTime,
-                        onDone: () => 
+                        onDone: () =>
                         {
                             isMe.IfFalseDo(() => _reversedCardsIO.Destroy());
                             isMe.IfTrueDo(MoveCommonDeckBack);
@@ -217,12 +220,23 @@ namespace CardRPG.UI.Gameplay
                 var card = _reversedCardsIO.Object;
                 card.SetDesc("Common\nDeck");
 
+                Debug.Log($"commonDeck: {commonDeckTarget.position}");
+                Debug.Log($"commonDeck.lossyScale: {commonDeckTarget.lossyScale}");
+                Debug.Log($"commonDeck.localScale: {commonDeckTarget.localScale}");
+                Debug.Log($"commonDeck.pivot: {commonDeckTarget.pivot}");
+                Debug.Log($"commonDeck.rect: {commonDeckTarget.rect}");
+                Debug.Log($"commonDeck.sizeDelta: {commonDeckTarget.sizeDelta}");
+                Debug.Log($"card: {card.RT.position}");
+                Debug.Log($"card.lossyScale: {card.RT.lossyScale}");
+                Debug.Log($"card.scale: {card.RT.localScale}");
+                Debug.Log($"card.pivot: {card.RT.pivot}");
+
                 LerpFunctions.BeginLerp(card.RT, _moveArea, onDone =>
                 {
                     LerpFunctions.LerpPosition2D(
                         StartCoroutine,
                         card.RT,
-                        ScreenEx.Right.AddX(-card.RT.rect.width / 2 - 10),
+                        commonDeckTarget.GetPosFor(card.RT),
                         cardMoveTime,
                         onDone: onDoneFinal);
                 });
@@ -254,6 +268,40 @@ namespace CardRPG.UI.Gameplay
                         durationSeconds: cardMoveTime);
                 });
             }
+        }
+
+        public void MoveTo(
+            Vector2 targetPos,
+            float cardMoveTime)
+        {
+            var initialPos = RT.position;
+
+            LerpFunctions.BeginLerp(RT, _moveArea, onDone =>
+            {
+                LerpFunctions.LerpPosition2D(
+                    StartCoroutine,
+                    RT,
+                    targetPos,
+                    cardMoveTime);
+
+                LerpFunctions.LerpRotationZ(
+                    StartCoroutine,
+                    RT,
+                    360,
+                    cardMoveTime);
+
+                LerpFunctions.LerpScale2D(
+                    StartCoroutine,
+                    RT,
+                    1.5f,
+                    cardMoveTime / 2,
+                    onDone: () =>
+                        LerpFunctions.LerpScale2D(
+                            StartCoroutine,
+                            RT,
+                            1f,
+                            cardMoveTime / 2));
+            });
         }
     }
 }

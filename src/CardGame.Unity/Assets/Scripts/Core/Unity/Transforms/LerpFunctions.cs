@@ -1,10 +1,10 @@
 ﻿using Common.Unity.Functional;
 using Core.Collections;
 using Core.Maths;
-using Core.Unity.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.UI;
 using static Core.Maths.LerpingFunctions;
@@ -228,11 +228,11 @@ namespace Core.Unity.Transforms
         }
 
         public static void LerpAnchoredPosition2D(
+            Func<IEnumerator, Coroutine> startCoroutine,
             RectTransform rt,
             Vector2 targetPosition,
-            float durationSeconds,
-            LerpFunctionType type,
-            Func<IEnumerator, Coroutine> startCoroutine,
+            float durationSeconds = 0.75f,
+            LerpFunctionType type = LerpFunctionType.Smooth,
             Action onDone = null)
         {
             LerpingFunctions.Lerp(
@@ -325,10 +325,32 @@ namespace Core.Unity.Transforms
             RectTransform moveParent, 
             Action<Action> lerpAction)
         {
+            var previousPivot = rt.pivot;
             var previousParent = rt.parent;
-            rt.SetParent(moveParent.transform);
 
-            lerpAction(() => rt.SetParent(previousParent));
+            if (rt.parent != moveParent)
+            {
+                var previousPos = rt.position;
+
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                var offset = (rt.pivot - previousPivot) * new Vector2(rt.rect.width * rt.lossyScale.x, rt.rect.height * rt.lossyScale.x);
+
+                rt.SetParent(moveParent.transform, worldPositionStays: true);
+
+                var newPos = previousPos;
+                newPos.x += offset.x;
+                newPos.y += offset.y;
+                rt.position = newPos;
+            }
+
+            lerpAction(() =>
+            {
+                if (rt.parent != moveParent)
+                {
+                    rt.SetParent(previousParent, worldPositionStays: false);
+                    rt.pivot = previousPivot;
+                }
+            });
         }
 
         #endregion

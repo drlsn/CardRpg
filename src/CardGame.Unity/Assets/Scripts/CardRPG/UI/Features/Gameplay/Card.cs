@@ -1,4 +1,3 @@
-using CardRPG.Entities.Gameplay;
 using CardRPG.UI.Features.Gameplay;
 using Common.Unity.Coroutines;
 using Core.Basic;
@@ -6,12 +5,10 @@ using Core.Collections;
 using Core.Functional;
 using Core.Unity;
 using Core.Unity.Coroutines;
-using Core.Unity.Math;
 using Core.Unity.Scripts;
 using Core.Unity.Transforms;
 using Core.Unity.UI;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -34,7 +31,7 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private TMP_Text _hpText;
         [SerializeField] private TMP_Text _attackText;
 
-        [SerializeField] private Button _cardButton;
+        public Button CardButton;
         public Button ReversedCardButton;
 
         [SerializeField] private Image _image;
@@ -70,8 +67,8 @@ namespace CardRPG.UI.Gameplay
 
             _image.sprite = _cardImages.Sprites[card.ImageIndex];
 
-            _cardButton.onClick.RemoveAllListeners();
-            _cardButton.onClick.AddListener(() =>
+            CardButton.onClick.RemoveAllListeners();
+            CardButton.onClick.AddListener(() =>
             {
                 if (!_moveOrderCounter.IsEmpty)
                     return;
@@ -100,7 +97,7 @@ namespace CardRPG.UI.Gameplay
             _image.sprite = _cardImages.Sprites[card.ImageIndex];
             _image.rectTransform.sizeDelta = new(1000, _image.rectTransform.rect.height);
 
-            _cardButton.onClick.AddListener(() => OnCardSelected?.Invoke(_card, _isEnemy));
+            CardButton.onClick.AddListener(() => OnCardSelected?.Invoke(_card, _isEnemy));
         }
 
         public void SetDesc(string text) => _descText.text = text;
@@ -285,7 +282,7 @@ namespace CardRPG.UI.Gameplay
                         1,
                         durationSeconds: 0.3f);
             }, 
-            delaySeconds: 0,//delaySeconds + 0.1f, 
+            delaySeconds: 0,//delaySeconds + 0.1f,
             StartCoroutine);
 
             _moveOrderTimes.Clear();
@@ -294,6 +291,7 @@ namespace CardRPG.UI.Gameplay
 
         public void MoveTo(
             Vector2 targetPos,
+            bool dontReverse = false,
             float cardMoveTime = 0.75f)
         {
             IsMoving = true;
@@ -335,7 +333,7 @@ namespace CardRPG.UI.Gameplay
                         cardMoveTime / 3,
                         onDone: () =>
                         {
-                            ReversedCardButton.SetActive(false);
+                            ReversedCardButton.SetActive(dontReverse);
                             _descText.SetActive(false);
                             LerpFunctions.LerpScaleX(
                                 StartCoroutine,

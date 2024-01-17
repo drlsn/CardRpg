@@ -983,8 +983,8 @@ MonoBehaviour:
     _methodName: 
     _args: []
     _dynamic: 0
-    _typeName: Common.Unity.Events.GetGameObject, Assembly-CSharp, Version=0.0.0.0,
-      Culture=neutral, PublicKeyToken=null
+    _typeName: Common.Unity.Events.GetGameObject, Core, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
     dirty: 0
   _target: {fileID: 3061721687517260737}
   _targetValue: 36000
@@ -2766,12 +2766,9 @@ MonoBehaviour:
   _descText: {fileID: 0}
   _hpText: {fileID: 2732770406256710601}
   _attackText: {fileID: 3164898183006682611}
-  _cardButton: {fileID: 4265078936453471430}
+  CardButton: {fileID: 4265078936453471430}
   ReversedCardButton: {fileID: 5932163588766109673}
   _image: {fileID: 5387587287167745181}
-  _reversedCardsIO:
-    _parent: {fileID: 8827368449350033649}
-    _prefab: {fileID: 28391750140825017}
   _arrowController: {fileID: 5035980669502834443}
 --- !u!1 &4647485730353509285
 GameObject:
@@ -5004,7 +5001,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:

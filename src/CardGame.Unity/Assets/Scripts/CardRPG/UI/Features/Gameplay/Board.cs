@@ -13,8 +13,6 @@ using UnityEngine;
 
 namespace CardRPG.UI.Gameplay
 {
-
-    
     public class Board : UnityScript
     {
         // Enemy
@@ -58,6 +56,10 @@ namespace CardRPG.UI.Gameplay
             //steps += Wait(0.5f);
             steps += Show("Take Cards");
             steps += StartTakeCardsToHand;
+            steps += Wait(0.5f);
+            steps += Show("You Strike First", 1f);
+            steps += Show("Lay the Cards");
+            steps += StartLayingCardsToBattle;
 
             RunAsCoroutine(steps.Execute);
         }
@@ -78,8 +80,6 @@ namespace CardRPG.UI.Gameplay
 
         private void StartTakeCardsToHand(Action onDone)
         {
-            ///_msg.HideMessage();
-
             _myDeck.gameObject.SetActive(true);
             _enemyDeck.gameObject.SetActive(true);
 
@@ -120,14 +120,59 @@ namespace CardRPG.UI.Gameplay
             card.GrayOff();
 
             var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
-            card.MoveTo(targetPos, cardMoveTime: 0.35f);
+            card.MoveTo(targetPos, dontReverse: forEnemy, cardMoveTime: 0.35f);
             count++;
 
             _gameplayService.Send(new TakeCardToHandCommand(!forEnemy));
-            if (count == 6)
+            if (count == 6 && !forEnemy)
                 (_myDeck + _commonDeck)
-                    .ForEach(x => x.HideArrow().ReversedCardButton.DisableAndRemoveListeners())
+                    .ForEach(x => x
+                        .HideArrow().ReversedCardButton
+                        .DisableAndRemoveListeners())
                     .Then(onDone); 
+        }
+
+        private void StartLayingCardsToBattle(Action onDone)
+        {
+            _playerHandIO.Parent
+                .GetChildren<Card>()
+                .ForEach(card => 
+                    card.ReversedCardButton.transform.parent.gameObject.SetActive(false))
+                .ForEach(card =>
+                   card.CardButton.onClick.AddListener(() => LayCardToBattle(onDone, card)));
+        }
+
+        public void LayCardToBattle(Action onDone, Card card, bool forEnemy = false)
+        {
+            var row = forEnemy ? _enemiesBattleIO.Parent.RT() : _playerBattleIO.Parent.RT();
+
+            var rowWidth = row.GetRTWidth();
+            var cards = row.GetComponentsInChildren<Card>();
+            var count = cards.Length;
+
+            if (cards.Any(card => card.IsMoving))
+                return;
+
+            var spacing = 20;
+            cards.ForEach((card, i) =>
+            {
+                var offsetFactor = (float) (i - (count + 1) / 2f + 0.5f);
+                var xOffset = offsetFactor * (card.RT.rect.width + spacing);
+                var rowPos = row.GetScreenPos(xOffset);
+                card.TranslateTo(rowPos);
+            });
+
+            var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
+            card.RT.SetParent(row);
+            card.CardButton.DisableAndRemoveListeners();
+            card.MoveTo(targetPos, dontReverse: forEnemy, cardMoveTime: 0.35f);
+            count++;
+
+            if (count == 6 && !forEnemy)
+                _playerHandIO.Parent
+                   .GetChildren<Card>()
+                   .ForEach(card => card.CardButton.onClick.RemoveAllListeners())
+                   .Then(onDone);
         }
     }
 }

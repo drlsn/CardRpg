@@ -1243,7 +1243,7 @@ MonoBehaviour:
   _enemyDeck: {fileID: 675343957250013833}
   _commonDeck: {fileID: 5644001243031857667}
   _playerBattleIO:
-    _parent: {fileID: 0}
+    _parent: {fileID: 3852534849814979857}
     _prefab: {fileID: 0}
   _playerHandIO:
     _parent: {fileID: 1845245671979703636}

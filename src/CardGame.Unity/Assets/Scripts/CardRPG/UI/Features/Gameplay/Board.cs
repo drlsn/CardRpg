@@ -8,6 +8,7 @@ using Core.Unity.Popups;
 using Core.Unity.Scripts;
 using Core.Unity.UI;
 using System;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -96,23 +97,24 @@ namespace CardRPG.UI.Gameplay
             var rowWidth = row.GetRTWidth();
             var cards = row.GetComponentsInChildren<Card>();
             var count = cards.Length;
-            
+
+            if (cards.Any(card => card.IsMoving))
+                return;
+
             var spacing = 20;
             cards.ForEach((card, i) =>
             {
-                var offsetFactor = (float) (i - (count + 1) / 2f + 0.5f);
+                var offsetFactor = (float)(i - (count + 1) / 2f + 0.5f);
                 var xOffset = offsetFactor * (card.RT.rect.width + spacing);
                 var rowPos = row.GetScreenPos(xOffset);
                 card.TranslateTo(rowPos);
-            }); 
+            });
 
             var sourceCard = fromCommonDeck ? _commonDeck : _myDeck;
             var card = sourceCard.Instantiate(row);
-            //card.RT.pivot = Vector2X.Half;
-            //card.RT.AddAnchoredPosX(card.RT.GetPivotOffsetX());
 
             var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
-            card.MoveTo(targetPos, cardMoveTime: 0.75f);
+            card.MoveTo(targetPos, cardMoveTime: 0.35f);
             count++;
 
             if (count == 6)

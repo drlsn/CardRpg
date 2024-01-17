@@ -126,6 +126,7 @@ namespace CardRPG.UI.Gameplay
             this.Remove<Image>();
         }
 
+        public bool IsMoving { get; private set; }
         private Counter _moveOrderCounter = new();
         private OrderedDictionary _moveOrderTimes = new();
 
@@ -259,22 +260,32 @@ namespace CardRPG.UI.Gameplay
             Vector2 targetPos,
             float cardMoveTime = 0.75f)
         {
-            _cm.Stop();
+            //_cm.Stop();
 
             var delaySeconds = 0f;
             if (_moveOrderTimes.Count > 0)
                 delaySeconds = (float) ((DateTime.UtcNow.Ticks - (long) _moveOrderTimes[_moveOrderTimes.Count - 1]) / 1_000_000);
+
+            //Debug.Log($"delay: {delaySeconds}");
             _cm += CoroutineExtensions.RunAsCoroutine(() => 
             {
                 _cm += LerpFunctions.LerpPosition2D(
                     StartCoroutine,
                     RT,
                     targetPos,
+                    durationSeconds: 0.3f,
                     onDone: () => _moveOrderCounter.Decrease());
+
+                _cm += LerpFunctions.LerpScale2D(
+                        StartCoroutine,
+                        RT,
+                        1,
+                        durationSeconds: 0.3f);
             }, 
-            delaySeconds: delaySeconds + 0.1f, 
+            delaySeconds: 0,//delaySeconds + 0.1f, 
             StartCoroutine);
-            
+
+            _moveOrderTimes.Clear();
             _moveOrderCounter.Increase();
         }
 
@@ -282,6 +293,8 @@ namespace CardRPG.UI.Gameplay
             Vector2 targetPos,
             float cardMoveTime = 0.75f)
         {
+            IsMoving = true;
+
             _moveOrderCounter.Increase();
 
             var timeId = Guid.NewGuid().ToString();
@@ -299,15 +312,16 @@ namespace CardRPG.UI.Gameplay
                     {
                         _moveOrderCounter.Decrease();
                         _moveOrderTimes.Remove(timeId);
+                        IsMoving = false;
                         restore();
                     });
 
-                //// Rotate
-                //_cm += LerpFunctions.LerpRotationZ(
-                //    StartCoroutine,
-                //    RT,
-                //    360,
-                //    cardMoveTime);
+                // Rotate
+                _cm += LerpFunctions.LerpRotationZ(
+                    StartCoroutine,
+                    RT,
+                    360,
+                    cardMoveTime);
 
                 // Scale X
                 _cm += RunAsCoroutine(

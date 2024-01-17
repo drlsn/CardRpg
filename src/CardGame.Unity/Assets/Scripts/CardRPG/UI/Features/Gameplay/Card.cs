@@ -123,7 +123,10 @@ namespace CardRPG.UI.Gameplay
 
         public void GrayOff()
         {
-            this.Remove<Image>();
+            gameObject
+                .GetComponentsInChildren<Image>()
+                .FirstOrDefault(x => x.gameObject.name == "Gray")
+                .Destroy();
         }
 
         public bool IsMoving { get; private set; }
@@ -375,5 +378,11 @@ public static class RandomExtensions
         random ??= new System.Random();
         int idx = random.Next(source.Count() - 1);
         return source[idx];
+    }
+
+    public static bool GetRandomBool(System.Random random = null)
+    {
+        random ??= new System.Random();
+        return random.Next(2) == 0 ? false : true;
     }
 }

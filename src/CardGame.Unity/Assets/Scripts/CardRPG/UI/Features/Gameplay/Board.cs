@@ -1,9 +1,10 @@
+using CardRPG.UI.Infrastructure;
+using CardRPG.UI.UseCases;
 using CardRPG.UseCases;
 using Core.Basic;
 using Core.Collections;
 using Core.Functional;
 using Core.Unity;
-using Core.Unity.Popups;
 using Core.Unity.Scripts;
 using Core.Unity.UI;
 using System;
@@ -12,6 +13,8 @@ using UnityEngine;
 
 namespace CardRPG.UI.Gameplay
 {
+
+    
     public class Board : UnityScript
     {
         // Enemy
@@ -31,9 +34,19 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private PlayerActionController _playerActionController;
         [SerializeField] private RectTransform _moveArea;
 
+        private IGameplayService _gameplayService;
+
         public void Init(GetGameStateQueryOut dto)
         {
+            _gameplayService = new OfflineGameplayService(StartCoroutine);
+            _gameplayService.Subscribe<CardTakenToHandEvent>(On);
+
             Rebuild(dto);
+        }
+
+        private void On(CardTakenToHandEvent ev)
+        {
+            TakeCardToHand(onDone: null, forEnemy: true, ev.IsFromCommonDeck);
         }
 
         public void Rebuild(GetGameStateQueryOut dto)
@@ -82,9 +95,9 @@ namespace CardRPG.UI.Gameplay
             _commonDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone, fromCommonDeck: true));
         }
 
-        public void TakeCardToHand(Action onDone, bool fromCommonDeck = false)
+        public void TakeCardToHand(Action onDone, bool forEnemy = false, bool fromCommonDeck = false)
         {
-            var row = _playerHandIO.Parent.RT();
+            var row = forEnemy ? _enemiesHandIO.Parent.RT() : _playerHandIO.Parent.RT();
 
             var rowWidth = row.GetRTWidth();
             var cards = row.GetComponentsInChildren<Card>();
@@ -102,13 +115,15 @@ namespace CardRPG.UI.Gameplay
                 card.TranslateTo(rowPos);
             });
 
-            var sourceCard = fromCommonDeck ? _commonDeck : _myDeck;
+            var sourceCard = fromCommonDeck ? _commonDeck : (forEnemy ? _enemyDeck : _myDeck);
             var card = sourceCard.Instantiate(row);
+            card.GrayOff();
 
             var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
             card.MoveTo(targetPos, cardMoveTime: 0.35f);
             count++;
 
+            _gameplayService.Send(new TakeCardToHandCommand(!forEnemy));
             if (count == 6)
                 (_myDeck + _commonDeck)
                     .ForEach(x => x.HideArrow().ReversedCardButton.DisableAndRemoveListeners())

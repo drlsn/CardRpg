@@ -1,69 +1,146 @@
-﻿using Core.Collections;
+﻿using Common.Unity.Coroutines;
+using Core.Collections;
+using Core.Unity.Coroutines;
 using Core.Unity.Transforms;
 using Core.Unity.UI;
-using System.Collections;
+using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using static Core.Unity.Functional.Delegates;
 using static Core.Unity.UnityIOs;
 
 namespace Core.Unity.Popups
 {
     public class MessagesController : MonoBehaviour
     {
+        public const float MinShowTime = 0.25f;
+        public const float ShowTime = 0.25f;
+        public const float StayTime = 0f;
+
         [SerializeField] private TextTmpIOList _popupIO;
+        private RectTransform _msgRT;
 
-        public MessagesController Show(string message, float showTime = 0.25f, float waitTime = 0f)
+        private readonly Queue<MessageInfo> _messages = new();
+        private CoroutineAggregate _coroutines;
+
+        private MessageState _messageState;
+        private float _lastMsgTimeSeconds = int.MaxValue;
+
+        private void Awake()
         {
-            var popup = _popupIO.Object ?? _popupIO.Instantiate();
+            _coroutines = new(StopCoroutine);
+            _popupIO.Instantiate();
+            _popupIO.Object.RT().localScale = Vector3.zero;
+            _msgRT = _popupIO.Object.RT();
+        }
 
-            var rt = popup.RT();
-            rt.localScale = Vector3.zero;
-
-            rt.SetSiblingIndex(0);
-            popup.GetComponentsInChildren<TMP_Text>(includeInactive: true)
-                .ForEach(text => text.text = message);
-
-            LerpFunctions.LerpScale2D(
-                    StartCoroutine,
-                    rt,
-                    1,
-                    durationSeconds: showTime,
-                    onDone: () =>
-                    {
-                        if (waitTime != 0)
-                            StartCoroutine(DestroyText(waitTime));
-                    });
-
+        public MessagesController Show(
+            string message, float showTimeSeconds = int.MaxValue, bool force = false)
+        {
+            _messages.Enqueue(
+                new(message, showTimeSeconds));
+            
             return this;
         }
 
-        private bool _explicitDestroy;
-
-        public void HideMessage()
+        private void Update()
         {
-            _explicitDestroy = true;
-            StartCoroutine(DestroyText(0));
+            if (_messages.Count == 0)
+                return;
+
+            if (_lastMsgTimeSeconds != int.MaxValue)
+                return;
+
+            var msg = _messages.Peek();
+
+            if (_messageState == MessageState.Inactive)
+            {
+                _coroutines.Stop();
+                _coroutines += FadeInText(msg.Text, msg.Time);
+                _messages.Dequeue();
+            }
+            else 
+            if (_messageState == MessageState.Showing)
+            {
+                _coroutines.Stop();
+                _coroutines += FadeOutText();
+            }
         }
 
-        private IEnumerator DestroyText(float waitTime = 0.75f)
+        public void HideMessage(bool immediate = false)
         {
-            yield return new WaitForSeconds(waitTime);
+            _coroutines.Stop();
 
-            if (_explicitDestroy)
-                yield return null;
+            if (immediate)
+            {
+                _msgRT.localScale = Vector3.zero;
+                _messageState = MessageState.Inactive;
+                _coroutines.Stop();
 
-            var rt = _popupIO.Object.RT();
-            var time = 0.5f;
-            LerpFunctions.LerpScale2D(
-                 StartCoroutine,
-                 rt,
-                 0,
-                 durationSeconds: time,
-                 onDone: () =>
-                 {
-                     _popupIO.Destroy();
-                     _explicitDestroy = false;
-                 });
+                return;
+            }
+
+            _coroutines.Stop();
+            FadeOutText();
+        }
+
+        public Coroutine FadeInText(
+            string message,
+            float stayTimeSeconds)
+        {
+            _msgRT.SetSiblingIndex(0);
+            _msgRT.GetComponentsInChildren<TMP_Text>(includeInactive: true)
+                .ForEach(text => text.text = message);
+
+            _lastMsgTimeSeconds = stayTimeSeconds;
+            _messageState = MessageState.FadeIn;
+            return LerpFunctions.LerpScale2D(
+                StartCoroutine,
+                _msgRT,
+                1,
+                durationSeconds: ShowTime,
+                onDone: () =>
+                {
+                    _messageState = MessageState.Showing;
+                    if (stayTimeSeconds != int.MaxValue)
+                        CoroutineExtensions.RunAsCoroutine(() => FadeOutText(), delaySeconds: stayTimeSeconds, StartCoroutine);
+                });
+        }
+
+        private Coroutine FadeOutText()
+        {
+            _messageState = MessageState.FadeOut;
+            return LerpFunctions.LerpScale2D(
+                StartCoroutine,
+                _msgRT,
+                0,
+                durationSeconds: ShowTime,
+                onDone: () =>
+                {
+                    _lastMsgTimeSeconds = int.MaxValue;
+                    _messageState = MessageState.Inactive;
+                });
+        }
+
+        private class MessageInfo
+        {
+            public readonly string Text = string.Empty;
+            public readonly float Time = float.MaxValue;
+
+            public MessageInfo(string text, float time = float.MaxValue)
+            {
+                Text = text;
+                Time = time;
+            }
+        }
+
+        private enum MessageState
+        {
+            Inactive,
+            FadeIn,
+            Showing,
+            FadeOut
         }
     }
 }

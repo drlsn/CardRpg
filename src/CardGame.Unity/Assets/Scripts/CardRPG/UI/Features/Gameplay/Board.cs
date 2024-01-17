@@ -3,13 +3,11 @@ using Core.Basic;
 using Core.Collections;
 using Core.Functional;
 using Core.Unity;
-using Core.Unity.Math;
 using Core.Unity.Popups;
 using Core.Unity.Scripts;
 using Core.Unity.UI;
 using System;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace CardRPG.UI.Gameplay
@@ -33,13 +31,6 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private PlayerActionController _playerActionController;
         [SerializeField] private RectTransform _moveArea;
 
-        private MessagesController _msg;
-
-        private void Awake()
-        {
-            _msg = GameObject.FindObjectOfType<MessagesController>();
-        }
-
         public void Init(GetGameStateQueryOut dto)
         {
             Rebuild(dto);
@@ -49,9 +40,10 @@ namespace CardRPG.UI.Gameplay
         {
             var steps = new ActionStepController();
 
-            steps += onDone => _msg.Show("Mixing Cards").Then(onDone);
+            steps += Show("Mixing Cards");
             steps += AnimateMixingCards;
-
+            //steps += Wait(0.5f);
+            steps += Show("Take Cards");
             steps += StartTakeCardsToHand;
 
             RunAsCoroutine(steps.Execute);
@@ -73,7 +65,7 @@ namespace CardRPG.UI.Gameplay
 
         private void StartTakeCardsToHand(Action onDone)
         {
-            _msg.HideMessage();
+            ///_msg.HideMessage();
 
             _myDeck.gameObject.SetActive(true);
             _enemyDeck.gameObject.SetActive(true);

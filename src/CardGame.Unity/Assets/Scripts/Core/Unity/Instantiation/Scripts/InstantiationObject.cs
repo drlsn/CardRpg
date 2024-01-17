@@ -3,7 +3,7 @@ using static Core.Unity.UnityIOs;
 
 namespace Core.Unity.Scripts
 {
-    internal class InstantiationObject : MonoBehaviour
+    public class InstantiationObject : MonoBehaviour
     {
         [SerializeField] private TransformIO _prefabData;
 

@@ -12,8 +12,11 @@ namespace Core.Unity.Coroutines
         public CoroutineAggregate(Action<Coroutine> stopCoroutine) =>
             _stopCoroutine = stopCoroutine;
 
-        public void Stop() =>
+        public void Stop()
+        {
             _coroutines.ForEach(_stopCoroutine);
+            _coroutines.Clear();
+        }
 
         public static CoroutineAggregate operator +(CoroutineAggregate aggregate, Coroutine coroutine)
         {

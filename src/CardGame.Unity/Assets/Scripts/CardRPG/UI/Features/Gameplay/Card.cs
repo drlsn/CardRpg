@@ -42,6 +42,8 @@ namespace CardRPG.UI.Gameplay
 
         [SerializeField] private ArrowTransitionController _arrowController;
 
+        public GameObject DustVFX;
+
         private Entities.Gameplay.Card _card;
         private bool _isEnemy;
         private RectTransform _moveArea;
@@ -57,7 +59,9 @@ namespace CardRPG.UI.Gameplay
             _moveArea = GameObject.FindGameObjectWithTag("MoveArea").RT();
             _cm = new(StopCoroutine);
 
-            _image.sprite = _cardImages.Sprites[new System.Random().Next(0, _cardImages.Sprites.Count)];
+            int group = 1;
+            _image.sprite = _cardImages.GetAvers(1);
+            ReversedCardButton.GetComponent<Image>().sprite = _cardImages.GetRevers(0);
         }
 
         public void Init(Entities.Gameplay.Card card, bool isEnemy)
@@ -69,7 +73,7 @@ namespace CardRPG.UI.Gameplay
             _hpText.text = card.Statistics.HP.CalculatedValue.ToString();// + " HP";
             _attackText.text = card.Statistics.Attack.CalculatedValue.ToString();// + " AT";
 
-            _image.sprite = _cardImages.Sprites[card.ImageIndex];
+            //_image.sprite = _cardImages.Sprites[card.ImageIndex];
         }
 
         public void SetDesc(string text) => _descText.text = text;
@@ -265,7 +269,8 @@ namespace CardRPG.UI.Gameplay
             Vector2 targetPos,
             bool dontReverse = false,
             float cardMoveTime = 0.75f,
-            bool onlyTranslate = false)
+            bool onlyTranslate = false,
+            Action onDone = null)
         {
             IsMoving = true;
 
@@ -287,6 +292,7 @@ namespace CardRPG.UI.Gameplay
                         _moveOrderCounter.Decrease();
                         _moveOrderTimes.Remove(timeId);
                         IsMoving = false;
+                        onDone?.Invoke();
                         restore();
                     });
 

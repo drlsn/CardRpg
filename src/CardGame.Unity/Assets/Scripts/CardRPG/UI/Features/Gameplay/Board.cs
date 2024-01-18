@@ -163,7 +163,15 @@ namespace CardRPG.UI.Gameplay
             var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
             card.RT.SetParent(row);
             card.CardButton.DisableAndRemoveHandlers();
-            card.MoveTo(targetPos, dontReverse: forEnemy, cardMoveTime: 0.35f, onlyTranslate: true);
+            card.MoveTo(targetPos, dontReverse: forEnemy, cardMoveTime: 0.35f, onlyTranslate: true, onDone: () =>
+            {
+                RectTransformUtility.ScreenPointToWorldPointInRectangle(
+                    card.RT, card.RT.position, FindAnyObjectByType<Camera>(), out var pnt);
+                var vfx = Instantiate(card.DustVFX, pnt, card.DustVFX.transform.rotation);
+                var main = vfx.GetComponentInChildren<ParticleSystem>().main;
+                main.loop = false;
+                Run(() => vfx.Destroy(), delaySeconds: 5f);
+            });
             count++;
 
             if (count == 6 && !forEnemy)

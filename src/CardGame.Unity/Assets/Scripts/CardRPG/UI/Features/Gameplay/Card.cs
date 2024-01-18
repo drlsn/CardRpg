@@ -38,6 +38,14 @@ namespace CardRPG.UI.Gameplay
 
         [SerializeField] private Image _image;
 
+        [SerializeField] private Image _cardTypeIcon;
+
+        [SerializeField] private Sprite _heroCardIcon;
+        [SerializeField] private Sprite _unitCardIcon;
+        [SerializeField] private Sprite _spellCardIcon;
+        [SerializeField] private Sprite _skillCardIcon;
+        [SerializeField] private Sprite _itemCardIcon;
+
         //[SerializeField] private CardRpgIOs.CardIOList _reversedCardsIO;
 
         [SerializeField] private ArrowTransitionController _arrowController;
@@ -59,9 +67,12 @@ namespace CardRPG.UI.Gameplay
             _moveArea = GameObject.FindGameObjectWithTag("MoveArea").RT();
             _cm = new(StopCoroutine);
 
+            _cardTypeIcon.sprite = new Sprite[] { _unitCardIcon, _spellCardIcon, _skillCardIcon, _itemCardIcon }
+                .GetRandom();
+
             int group = 1;
-            _image.sprite = _cardImages.GetAvers(1);
-            ReversedCardButton.GetComponent<Image>().sprite = _cardImages.GetRevers(0);
+            //_image.sprite = _cardImages.GetAvers(1);
+            //ReversedCardButton.GetComponent<Image>().sprite = _cardImages.GetRevers(0);
         }
 
         public void Init(Entities.Gameplay.Card card, bool isEnemy)
@@ -76,7 +87,7 @@ namespace CardRPG.UI.Gameplay
             //_image.sprite = _cardImages.Sprites[card.ImageIndex];
         }
 
-        public void SetDesc(string text) => _descText.text = text;
+        public void SetDesc(string text) {}
 
         public Card ShowArrow() => _arrowController.Show().ThenReturn(this);
         public Card HideArrow() => _arrowController.Hide().ThenReturn(this);
@@ -336,7 +347,7 @@ namespace CardRPG.UI.Gameplay
                             onDone: () =>
                             {
                                 ReversedCardButton.SetActive(dontReverse);
-                                _descText.SetActive(false);
+                                //_descText.SetActive(false);
                                 LerpFunctions.LerpScaleX(
                                     StartCoroutine,
                                     RT,

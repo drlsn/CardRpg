@@ -10,6 +10,7 @@ using Core.Unity.UI;
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -33,6 +34,7 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private RectTransform _moveArea;
 
         private IGameplayService _gameplayService;
+
 
         public void Init(GetGameStateQueryOut dto)
         {
@@ -117,6 +119,7 @@ namespace CardRPG.UI.Gameplay
 
             var sourceCard = fromCommonDeck ? _commonDeck : (forEnemy ? _enemyDeck : _myDeck);
             var card = sourceCard.Instantiate(row);
+            UILayoutRebuilder.Rebuild(card.gameObject);
             card.GrayOff();
 
             var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));

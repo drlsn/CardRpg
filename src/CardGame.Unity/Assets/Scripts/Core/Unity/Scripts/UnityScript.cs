@@ -1,4 +1,5 @@
 ﻿using Common.Unity.Coroutines;
+using Core.Collections;
 using Core.Unity.Popups;
 using System;
 using UnityEngine;
@@ -49,5 +50,19 @@ namespace Core.Unity.Scripts
             _msg.Show(message, showTimeSeconds, false);
             onDone?.Invoke();
         };
+
+        protected void Log(string message) => Debug.Log(message);
+        protected void LogScriptName() => Debug.Log(GetType().Name);
+    }
+}
+
+public static class LogExtensions
+{
+    public static void Log(this object x, string name = "")
+    {
+        if (name.IsNullOrEmpty())
+            Debug.Log(x);
+        else
+            Debug.Log($"{name}: {x}");
     }
 }

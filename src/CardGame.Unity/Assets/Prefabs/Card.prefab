@@ -1227,6 +1227,10 @@ GameObject:
   - component: {fileID: 3387047798053154709}
   - component: {fileID: 6563115581072420358}
   - component: {fileID: 4265078936453471430}
+  - component: {fileID: 538990017368988951}
+  - component: {fileID: 8504082861736804969}
+  - component: {fileID: 3666300426148727230}
+  - component: {fileID: 6823301552346063145}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -1274,7 +1278,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1298,7 +1302,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2227712026547353747}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
@@ -1330,11 +1334,65 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 6563115581072420358}
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &538990017368988951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2227712026547353747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1b18af3dd1140c4e9c4eb00666073cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _lastTapTimeThreshold: 0.3
+  _maxTimeBetweenTaps: 0.25
+  Taps: 2
+--- !u!114 &8504082861736804969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2227712026547353747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6c5fb60eff3e34478be3fdff5a57b38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _holdTime: 0.6
+--- !u!114 &3666300426148727230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2227712026547353747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 936a0a682378a9b42a23a5c7c67b9302, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _maxSwipeTime: 1
+  _minSwipeDistance: 0.8
+--- !u!114 &6823301552346063145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2227712026547353747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b23a52188e55665468fea1ec31b54084, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2507272129461439183
 GameObject:
   m_ObjectHideFlags: 0
@@ -2766,8 +2824,8 @@ MonoBehaviour:
   _descText: {fileID: 0}
   _hpText: {fileID: 2732770406256710601}
   _attackText: {fileID: 3164898183006682611}
-  CardButton: {fileID: 4265078936453471430}
-  ReversedCardButton: {fileID: 5932163588766109673}
+  CardButton: {fileID: 6823301552346063145}
+  ReversedCardButton: {fileID: 5929640267689074748}
   _image: {fileID: 5387587287167745181}
   _arrowController: {fileID: 5035980669502834443}
 --- !u!1 &4647485730353509285
@@ -5338,6 +5396,10 @@ GameObject:
   - component: {fileID: 7744511963641060338}
   - component: {fileID: 1185589633217901609}
   - component: {fileID: 5932163588766109673}
+  - component: {fileID: 8065259036160152069}
+  - component: {fileID: 6092347420756522547}
+  - component: {fileID: 6154535921059227805}
+  - component: {fileID: 5929640267689074748}
   m_Layer: 5
   m_Name: BgReversed
   m_TagString: Untagged
@@ -5410,7 +5472,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7579941713858698954}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
@@ -5447,6 +5509,60 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8065259036160152069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7579941713858698954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1b18af3dd1140c4e9c4eb00666073cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _lastTapTimeThreshold: 0.3
+  _maxTimeBetweenTaps: 0.25
+  Taps: 2
+--- !u!114 &6092347420756522547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7579941713858698954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6c5fb60eff3e34478be3fdff5a57b38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _holdTime: 0.6
+--- !u!114 &6154535921059227805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7579941713858698954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 936a0a682378a9b42a23a5c7c67b9302, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _maxSwipeTime: 1
+  _minSwipeDistance: 0.8
+--- !u!114 &5929640267689074748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7579941713858698954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b23a52188e55665468fea1ec31b54084, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7693486883872986754
 GameObject:
   m_ObjectHideFlags: 0

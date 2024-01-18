@@ -8,6 +8,7 @@ using Core.Unity.Coroutines;
 using Core.Unity.Scripts;
 using Core.Unity.Transforms;
 using Core.Unity.UI;
+using Core.Unity.UI.Taps;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -31,8 +32,8 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private TMP_Text _hpText;
         [SerializeField] private TMP_Text _attackText;
 
-        public Button CardButton;
-        public Button ReversedCardButton;
+        public SwipeTapHoldController CardButton;
+        public SwipeTapHoldController ReversedCardButton;
 
         [SerializeField] private Image _image;
 
@@ -66,38 +67,6 @@ namespace CardRPG.UI.Gameplay
             _attackText.text = card.Statistics.Attack.CalculatedValue.ToString();// + " AT";
 
             _image.sprite = _cardImages.Sprites[card.ImageIndex];
-
-            CardButton.onClick.RemoveAllListeners();
-            CardButton.onClick.AddListener(() =>
-            {
-                if (!_moveOrderCounter.IsEmpty)
-                    return;
-                
-                OnCardSelected?.Invoke(_card, _isEnemy);
-            });
-
-            ReversedCardButton.onClick.RemoveAllListeners();
-            ReversedCardButton.onClick.AddListener(() => 
-            {
-                if (!_moveOrderCounter.IsEmpty)
-                    return;
-            });
-        }
-
-        public void Refresh(Entities.Gameplay.Card card, bool isEnemy)
-        {
-            _card = card;
-            _isEnemy = isEnemy;
-
-            _nameText.text = card.Name;
-            _hpText.text = card.Statistics.HP.CalculatedValue.ToString();// + " HP";
-            _attackText.text = card.Statistics.Attack.CalculatedValue.ToString();// + " AT";
-
-            Debug.Log($"{card.Name} - Image index - {card.ImageIndex}");
-            _image.sprite = _cardImages.Sprites[card.ImageIndex];
-            _image.rectTransform.sizeDelta = new(1000, _image.rectTransform.rect.height);
-
-            CardButton.onClick.AddListener(() => OnCardSelected?.Invoke(_card, _isEnemy));
         }
 
         public void SetDesc(string text) => _descText.text = text;
@@ -292,7 +261,8 @@ namespace CardRPG.UI.Gameplay
         public void MoveTo(
             Vector2 targetPos,
             bool dontReverse = false,
-            float cardMoveTime = 0.75f)
+            float cardMoveTime = 0.75f,
+            bool onlyTranslate = false)
         {
             IsMoving = true;
 
@@ -318,18 +288,19 @@ namespace CardRPG.UI.Gameplay
                     });
 
                 // Rotate
-                _cm += LerpFunctions.LerpRotationZ(
-                    StartCoroutine,
-                    RT,
-                    360,
-                    cardMoveTime);
+                if (!onlyTranslate)
+                    _cm += LerpFunctions.LerpRotationZ(
+                        StartCoroutine,
+                        RT,
+                        360,
+                        cardMoveTime);
 
                 // Scale X
                 _cm += RunAsCoroutine(
                     () => LerpFunctions.LerpScaleX(
                         StartCoroutine,
                         RT,
-                        0f,
+                        onlyTranslate ? 1.3f : 0f,
                         cardMoveTime / 3,
                         onDone: () =>
                         {
@@ -349,7 +320,7 @@ namespace CardRPG.UI.Gameplay
                     () => LerpFunctions.LerpScaleY(
                         StartCoroutine,
                         RT,
-                        1.5f,
+                        onlyTranslate ? 1.3f : 1.5f,
                         cardMoveTime / 3,
                         onDone: () =>
                             LerpFunctions.LerpScaleY(
@@ -358,7 +329,7 @@ namespace CardRPG.UI.Gameplay
                                 1f,
                                 cardMoveTime / 3)
                             .AddTo(_cm)),
-                     delaySeconds: cardMoveTime /3);
+                        delaySeconds: cardMoveTime /3);
             });
         }
     }

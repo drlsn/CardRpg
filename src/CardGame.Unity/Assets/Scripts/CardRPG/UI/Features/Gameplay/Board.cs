@@ -91,8 +91,8 @@ namespace CardRPG.UI.Gameplay
             _commonDeck.ShowArrow();
             _enemyDeck.GrayOn();
 
-            _myDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone));
-            _commonDeck.ReversedCardButton.onClick.AddListener(() => TakeCardToHand(onDone, fromCommonDeck: true));
+            _myDeck.ReversedCardButton.OnSwipe(() => TakeCardToHand(onDone));
+            _commonDeck.ReversedCardButton.OnSwipe(() => TakeCardToHand(onDone, fromCommonDeck: true));
         }
 
         public void TakeCardToHand(Action onDone, bool forEnemy = false, bool fromCommonDeck = false)
@@ -126,9 +126,7 @@ namespace CardRPG.UI.Gameplay
             _gameplayService.Send(new TakeCardToHandCommand(!forEnemy));
             if (count == 6 && !forEnemy)
                 (_myDeck + _commonDeck)
-                    .ForEach(x => x
-                        .HideArrow().ReversedCardButton
-                        .DisableAndRemoveListeners())
+                    .ForEach(x => x.HideArrow().ReversedCardButton.DisableAndRemoveHandlers())
                     .Then(onDone); 
         }
 
@@ -136,10 +134,10 @@ namespace CardRPG.UI.Gameplay
         {
             _playerHandIO.Parent
                 .GetChildren<Card>()
-                .ForEach(card => 
-                    card.ReversedCardButton.transform.parent.gameObject.SetActive(false))
                 .ForEach(card =>
-                   card.CardButton.onClick.AddListener(() => LayCardToBattle(onDone, card)));
+                    card.ReversedCardButton.transform.parent.gameObject.SetActive(false))
+                .ForEach(card => card.CardButton
+                    .Then(c => c.OnSwipe(() => LayCardToBattle(onDone, card))));
         }
 
         public void LayCardToBattle(Action onDone, Card card, bool forEnemy = false)
@@ -164,14 +162,14 @@ namespace CardRPG.UI.Gameplay
 
             var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
             card.RT.SetParent(row);
-            card.CardButton.DisableAndRemoveListeners();
-            card.MoveTo(targetPos, dontReverse: forEnemy, cardMoveTime: 0.35f);
+            card.CardButton.DisableAndRemoveHandlers();
+            card.MoveTo(targetPos, dontReverse: forEnemy, cardMoveTime: 0.35f, onlyTranslate: true);
             count++;
 
             if (count == 6 && !forEnemy)
                 _playerHandIO.Parent
                    .GetChildren<Card>()
-                   .ForEach(card => card.CardButton.onClick.RemoveAllListeners())
+                   .ForEach(card => card.CardButton.RemoveHandlers())
                    .Then(onDone);
         }
     }

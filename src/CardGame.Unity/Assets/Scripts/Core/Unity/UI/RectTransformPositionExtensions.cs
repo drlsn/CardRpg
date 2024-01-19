@@ -22,7 +22,7 @@ namespace Core.Unity.UI
         public static void TranslateByWidthHalf(this RectTransform rt) =>
             rt.AddAnchoredPosX(rt.rect.width / 2);
 
-        public static Vector2 GetScreenPos(this RectTransform rt, float xOffset = 0, float yOffset = 0) =>
+        public static Vector2 GetCenter(this RectTransform rt, float xOffset = 0, float yOffset = 0) =>
             new Vector2(
                 rt.position.x + 
                     rt.rect.width * (0.5f - rt.pivot.x) * rt.lossyScale.x +

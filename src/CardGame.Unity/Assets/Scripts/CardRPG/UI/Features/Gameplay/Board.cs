@@ -8,33 +8,30 @@ using Core.Unity;
 using Core.Unity.Scripts;
 using Core.Unity.UI;
 using System;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace CardRPG.UI.Gameplay
 {
     public class Board : UnityScript
     {
         // Enemy
-        [SerializeField] private CardRpgIOs.CardIOList _enemiesBackIO;
-        [SerializeField] private CardRpgIOs.CardIOList _enemiesHandIO;
-        [SerializeField] private CardRpgIOs.CardIOList _enemiesBattleIO;
+        [SerializeField] private RectTransform _enemyBackRow;
+        [SerializeField] private RectTransform _enemyHandRow;
+        [SerializeField] private RectTransform _enemyBattleRow;
         [SerializeField] private Card _enemyDeck;
 
-        [SerializeField] private Card _commonDeck;
-
         // Player
-        [SerializeField] private CardRpgIOs.CardIOList _playerBattleIO;
-        [SerializeField] private CardRpgIOs.CardIOList _playerHandIO;
-        [SerializeField] private CardRpgIOs.CardIOList _playerBackIO;
+        [SerializeField] private RectTransform _playerBattleRow;
+        [SerializeField] private RectTransform _playerHandRow;
+        [SerializeField] private RectTransform _playerBackRow;
         [SerializeField] private Card _myDeck;
 
+        [SerializeField] private Card _commonDeck;
+        [SerializeField] private RectTransform _middleRow;
+
         [SerializeField] private PlayerActionController _playerActionController;
-        [SerializeField] private RectTransform _moveArea;
 
         private IGameplayService _gameplayService;
-
 
         public void Init(GetGameStateQueryOut dto)
         {
@@ -66,6 +63,11 @@ namespace CardRPG.UI.Gameplay
             RunAsCoroutine(steps.Execute);
         }
 
+        public void SpawnHeroes(float moveTime, Action onDone)
+        {
+            
+        }
+
         private void AnimateMixingCards(Action onDone)
         {
             var enemyDeck = _enemyDeck.Instantiate(_enemyDeck.transform.parent);
@@ -75,8 +77,8 @@ namespace CardRPG.UI.Gameplay
             _myDeck.gameObject.SetActive(false);
 
             var cardMoveTime = 0.75f;
-            myDeck.AnimateMixingCards(isMe: true, _commonDeck.RT, cardMoveTime);
-            enemyDeck.AnimateMixingCards(isMe: false, _commonDeck.RT, cardMoveTime, onDone: 
+            myDeck.AnimateMixingCards(isMe: true, targetPos: _middleRow.GetCenter(xOffset: -200), _commonDeck.RT, cardMoveTime);
+            enemyDeck.AnimateMixingCards(isMe: false, _middleRow.GetCenter(xOffset: 200), _commonDeck.RT, cardMoveTime, onDone: 
                 onDone.Then(enemyDeck.Destroy).Then(myDeck.Destroy));
         }
 
@@ -84,8 +86,6 @@ namespace CardRPG.UI.Gameplay
         {
             _myDeck.gameObject.SetActive(true);
             _enemyDeck.gameObject.SetActive(true);
-
-            _moveArea.DestroyChildren();
 
             _commonDeck.gameObject.SetActive(true);
 
@@ -99,7 +99,7 @@ namespace CardRPG.UI.Gameplay
 
         public void TakeCardToHand(Action onDone, bool forEnemy = false, bool fromCommonDeck = false, float moveTime = 0.35f)
         {
-            var row = forEnemy ? _enemiesHandIO.Parent.RT() : _playerHandIO.Parent.RT();
+            var row = forEnemy ? _enemyHandRow : _playerHandRow;
 
             var sourceCard = fromCommonDeck ? _commonDeck : (forEnemy ? _enemyDeck : _myDeck);
             var card = sourceCard.Instantiate();
@@ -116,7 +116,7 @@ namespace CardRPG.UI.Gameplay
 
         private void StartLayingCardsToBattle(Action onDone)
         {
-            _playerHandIO.Parent
+            _playerHandRow
                 .GetChildren<Card>()
                 .ForEach(card => card.CardButton
                     .Then(c => c.OnSwipe(() => LayCardToBattle(card, onDone: onDone))));
@@ -124,7 +124,7 @@ namespace CardRPG.UI.Gameplay
 
         public void LayCardToBattle(Card card, bool forEnemy = false, float moveTime = 0.35f, Action onDone = null)
         {
-            var row = forEnemy ? _enemiesBattleIO.Parent.RT() : _playerBattleIO.Parent.RT();
+            var row = forEnemy ? _enemyBattleRow : _playerBattleRow;
             MoveCardToRow(card, row, Card.MoveEffect.Scale2D, moveTime, onDone);
         }
 
@@ -140,12 +140,12 @@ namespace CardRPG.UI.Gameplay
             {
                 var offsetFactor = (float) (i - (count + 1) / 2f + 0.5f);
                 var xOffset = offsetFactor * (card.RT.rect.width + spacing);
-                var rowPos = row.GetScreenPos(xOffset);
+                var rowPos = row.GetCenter(xOffset);
 
                 card.MoveTo(rowPos, moveTime);
             });
 
-            var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
+            var targetPos = row.RT().GetCenter(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
             card.RT.SetParent(row);
             card.CardButton.RemoveHandlers();
             UILayoutRebuilder.Rebuild(card.gameObject);

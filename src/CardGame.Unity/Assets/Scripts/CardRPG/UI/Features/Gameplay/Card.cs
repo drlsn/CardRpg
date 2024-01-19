@@ -44,7 +44,6 @@ namespace CardRPG.UI.Gameplay
 
         private Entities.Gameplay.Card _card;
         private bool _isEnemy;
-        private RectTransform _moveArea;
 
         private static CardImages _cardImages;
 
@@ -54,7 +53,6 @@ namespace CardRPG.UI.Gameplay
         private void Awake()
         {
             _cardImages ??= FindObjectOfType<CardImages>();
-            _moveArea = GameObject.FindGameObjectWithTag("MoveArea").RT();
 
             _cardTypeIcon.sprite = new Sprite[] { _unitCardIcon, _spellCardIcon, _skillCardIcon, _itemCardIcon }
                 .GetRandom();
@@ -106,6 +104,7 @@ namespace CardRPG.UI.Gameplay
 
         public void AnimateMixingCards(
             bool isMe,
+            Vector2 targetPos,
             RectTransform commonDeckTarget,
             float cardMoveTime = 0.75f,
             float mixCardMoveTime = 0.25f,
@@ -113,8 +112,6 @@ namespace CardRPG.UI.Gameplay
         {
             var initialPos = RT.position;
 
-            var targetPos = _moveArea.GetScreenPos(xOffset: RT.rect.width * 2 * (isMe ? -1 : 1));
-             
             LerpFunctions.BeginLerp(RT, restore =>
             {
                 LerpFunctions.LerpPosition2D(   
@@ -192,7 +189,7 @@ namespace CardRPG.UI.Gameplay
                     LerpFunctions.LerpPosition2D(
                         StartCoroutine,
                         card.RT,
-                        commonDeckTarget.GetScreenPos(),
+                        commonDeckTarget.GetCenter(),
                         cardMoveTime,
                         onDone: restore
                             .Then(onDone)

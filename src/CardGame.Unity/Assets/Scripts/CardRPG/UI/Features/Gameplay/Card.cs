@@ -1,18 +1,12 @@
-using CardRPG.Entities.Gameplay;
 using CardRPG.UI.Features.Gameplay;
-using Common.Unity.Coroutines;
-using Core.Basic;
-using Core.Collections;
 using Core.Functional;
 using Core.Unity;
-using Core.Unity.Coroutines;
 using Core.Unity.Scripts;
 using Core.Unity.Transforms;
 using Core.Unity.UI;
 using Core.Unity.UI.Taps;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -46,11 +40,7 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private Sprite _skillCardIcon;
         [SerializeField] private Sprite _itemCardIcon;
 
-        //[SerializeField] private CardRpgIOs.CardIOList _reversedCardsIO;
-
         [SerializeField] private ArrowTransitionController _arrowController;
-
-        public GameObject DustVFX;
 
         private Entities.Gameplay.Card _card;
         private bool _isEnemy;
@@ -65,7 +55,6 @@ namespace CardRPG.UI.Gameplay
         {
             _cardImages ??= FindObjectOfType<CardImages>();
             _moveArea = GameObject.FindGameObjectWithTag("MoveArea").RT();
-            _cm = new(StopCoroutine);
 
             _cardTypeIcon.sprite = new Sprite[] { _unitCardIcon, _spellCardIcon, _skillCardIcon, _itemCardIcon }
                 .GetRandom();
@@ -114,8 +103,6 @@ namespace CardRPG.UI.Gameplay
         }
 
         public bool IsMoving { get; private set; }
-        private Counter _moveOrderCounter = new();
-        private OrderedDictionary _moveOrderTimes = new();
 
         public void AnimateMixingCards(
             bool isMe,
@@ -242,103 +229,59 @@ namespace CardRPG.UI.Gameplay
                 });
         }
 
-        private CoroutineAggregate _cm;
-        public void TranslateTo(
-            Vector2 targetPos,
-            float cardMoveTime = 0.75f)
-        {
-            //_cm.Stop();
-
-            var delaySeconds = 0f;
-            if (_moveOrderTimes.Count > 0)
-                delaySeconds = (float) ((DateTime.UtcNow.Ticks - (long) _moveOrderTimes[_moveOrderTimes.Count - 1]) / 1_000_000);
-
-            //Debug.Log($"delay: {delaySeconds}");
-            _cm += CoroutineExtensions.RunAsCoroutine(() => 
-            {
-                _cm += LerpFunctions.LerpPosition2D(
-                    StartCoroutine,
-                    RT,
-                    targetPos,
-                    durationSeconds: 0.3f,
-                    onDone: () => _moveOrderCounter.Decrease());
-
-                _cm += LerpFunctions.LerpScale2D(
-                        StartCoroutine,
-                        RT,
-                        1,
-                        durationSeconds: 0.3f);
-            }, 
-            delaySeconds: 0,//delaySeconds + 0.1f,
-            StartCoroutine);
-
-            _moveOrderTimes.Clear();
-            _moveOrderCounter.Increase();
-        }
-
         public void MoveTo(
             Vector2 targetPos,
             bool dontReverse = false,
             float cardMoveTime = 0.75f,
-            bool onlyTranslate = false,
+            MoveEffect effects = MoveEffect.None,
             Action onDone = null)
         {
-            IsMoving = true;
-
-            _moveOrderCounter.Increase();
-
-            var timeId = Guid.NewGuid().ToString();
-            _moveOrderTimes.Add(timeId, DateTime.UtcNow.Ticks);
+            if (IsMoving)
+                return;
 
             LerpFunctions.BeginLerp(RT, restore =>
             {
-                // Translate
-                _cm += LerpFunctions.LerpPosition2D(
+                LerpFunctions.LerpPosition2D(
                     StartCoroutine,
                     RT,
                     targetPos,
                     cardMoveTime,
                     onDone: () =>
                     {
-                        _moveOrderCounter.Decrease();
-                        _moveOrderTimes.Remove(timeId);
                         IsMoving = false;
                         onDone?.Invoke();
                         restore();
                     });
 
-                // Rotate
-                if (!onlyTranslate)
-                    _cm += LerpFunctions.LerpRotationZ(
+                if ((effects & MoveEffect.Rotate) != 0)
+                    LerpFunctions.LerpRotationZ(
                         StartCoroutine,
                         RT,
                         360,
                         cardMoveTime);
 
-                if (onlyTranslate)
+                if ((effects & MoveEffect.Scale2D) != 0)
                 {
-                    _cm += RunAsCoroutine(
-                        () => LerpFunctions.LerpScale2D(
-                            StartCoroutine,
-                            RT,
-                            1.5f,
-                            cardMoveTime / 2,
-                            onDone: () =>
-                            {
-                                ReversedCardButton.SetActive(dontReverse);
-                                _descText.SetActive(false);
-                                LerpFunctions.LerpScale2D(
-                                    StartCoroutine,
-                                    RT,
-                                    1f,
-                                    cardMoveTime / 2)
-                                .AddTo(_cm);
-                            }));
+                    LerpFunctions.LerpScale2D(
+                        StartCoroutine,
+                        RT,
+                        1.5f,
+                        cardMoveTime / 2,
+                        onDone: () =>
+                        {
+                            ReversedCardButton.SetActive(dontReverse);
+                            //_descText.SetActive(false);
+                            LerpFunctions.LerpScale2D(
+                                StartCoroutine,
+                                RT,
+                                1f,
+                                cardMoveTime / 2);
+                        });
                 }
                 else
+                if ((effects & MoveEffect.Scale3D) != 0)
                 {
-                    // Scale X
-                    _cm += RunAsCoroutine(
+                    RunAsCoroutine(
                         () => LerpFunctions.LerpScaleX(
                             StartCoroutine,
                             RT,
@@ -352,13 +295,11 @@ namespace CardRPG.UI.Gameplay
                                     StartCoroutine,
                                     RT,
                                     1f,
-                                    cardMoveTime / 3)
-                                .AddTo(_cm);
+                                    cardMoveTime / 3);
                             }),
                         delaySeconds: cardMoveTime / 3);
 
-                    // Scale Y
-                    _cm += RunAsCoroutine(
+                    RunAsCoroutine(
                         () => LerpFunctions.LerpScaleY(
                             StartCoroutine,
                             RT,
@@ -369,11 +310,19 @@ namespace CardRPG.UI.Gameplay
                                     StartCoroutine,
                                     RT,
                                     1f,
-                                    cardMoveTime / 3)
-                                .AddTo(_cm)),
+                                    cardMoveTime / 3)),
                             delaySeconds: cardMoveTime / 3);
                 }
             });
+        }
+
+        [Flags]
+        public enum MoveEffect
+        {
+            None = 0,
+            Rotate = 1,
+            Scale2D = 2,
+            Scale3D = 4,
         }
     }
 }

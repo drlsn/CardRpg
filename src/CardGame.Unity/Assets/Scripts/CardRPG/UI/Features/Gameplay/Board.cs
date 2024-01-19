@@ -93,67 +93,47 @@ namespace CardRPG.UI.Gameplay
             _commonDeck.ShowArrow();
             _enemyDeck.GrayOn();
 
-            _myDeck.ReversedCardButton.OnSwipe(() => TakeCardToHand(onDone));
-            _myDeck.ReversedCardButton.OnTap(() => TakeCardToHand(onDone));
-            _commonDeck.ReversedCardButton.OnSwipe(() => TakeCardToHand(onDone, fromCommonDeck: true));
+            _myDeck.CardButton.OnSwipe(() => TakeCardToHand(onDone));
+            _commonDeck.CardButton.OnSwipe(() => TakeCardToHand(onDone, fromCommonDeck: true));
         }
 
-        public void TakeCardToHand(Action onDone, bool forEnemy = false, bool fromCommonDeck = false)
+        public void TakeCardToHand(Action onDone, bool forEnemy = false, bool fromCommonDeck = false, float moveTime = 0.35f)
         {
             var row = forEnemy ? _enemiesHandIO.Parent.RT() : _playerHandIO.Parent.RT();
 
-            var rowWidth = row.GetRTWidth();
-            var cards = row.GetComponentsInChildren<Card>();
-            var count = cards.Length;
+            var sourceCard = fromCommonDeck ? _commonDeck : (forEnemy ? _enemyDeck : _myDeck);
+            var card = sourceCard.Instantiate();
 
-            //if (cards.Any(card => card.IsMoving))
-            //    return;
-
-            var spacing = 20;
-            cards.ForEach((card, i) =>
+            MoveCardToRow(card, row, Card.MoveEffect.Scale3D, moveTime, onDone: () =>
             {
-                var offsetFactor = (float)(i - (count + 1) / 2f + 0.5f);
-                var xOffset = offsetFactor * (card.RT.rect.width + spacing);
-                var rowPos = row.GetScreenPos(xOffset);
-                card.MoveTo(rowPos, cardMoveTime: 0.35f);
+                (_myDeck + _commonDeck)
+                    .ForEach(x => x.HideArrow().CardButton.RemoveHandlers())
+                    .Then(onDone);
             });
 
-            var sourceCard = fromCommonDeck ? _commonDeck : (forEnemy ? _enemyDeck : _myDeck);
-            var card = sourceCard.Instantiate(row);
-            UILayoutRebuilder.Rebuild(card.gameObject);
-            card.GrayOff();
-
-            var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
-            card.MoveTo(targetPos, dontReverse: forEnemy, cardMoveTime: 0.35f, effects: Card.MoveEffect.Scale3D | Card.MoveEffect.Rotate);
-            count++;
-
             _gameplayService.Send(new TakeCardToHandCommand(!forEnemy));
-            if (count == 6 && !forEnemy)
-                (_myDeck + _commonDeck)
-                    .ForEach(x => x.HideArrow().ReversedCardButton.DisableAndRemoveHandlers())
-                    .Then(onDone); 
         }
 
         private void StartLayingCardsToBattle(Action onDone)
         {
             _playerHandIO.Parent
                 .GetChildren<Card>()
-                .ForEach(card =>
-                    card.ReversedCardButton.transform.parent.gameObject.SetActive(false))
                 .ForEach(card => card.CardButton
-                    .Then(c => c.OnSwipe(() => LayCardToBattle(onDone, card))));
+                    .Then(c => c.OnSwipe(() => LayCardToBattle(card, onDone: onDone))));
         }
 
-        public void LayCardToBattle(Action onDone, Card card, bool forEnemy = false)
+        public void LayCardToBattle(Card card, bool forEnemy = false, float moveTime = 0.35f, Action onDone = null)
         {
             var row = forEnemy ? _enemiesBattleIO.Parent.RT() : _playerBattleIO.Parent.RT();
+            MoveCardToRow(card, row, Card.MoveEffect.Scale2D, moveTime, onDone);
+        }
 
+        public void MoveCardToRow(
+            Card card, RectTransform row, Card.MoveEffect effects, float moveTime = 0.35f,  Action onDone = null)
+        { 
             var rowWidth = row.GetRTWidth();
             var cards = row.GetComponentsInChildren<Card>();
             var count = cards.Length;
-
-            if (cards.Any(card => card.IsMoving))
-                return;
 
             var spacing = 20;
             cards.ForEach((card, i) =>
@@ -161,21 +141,20 @@ namespace CardRPG.UI.Gameplay
                 var offsetFactor = (float) (i - (count + 1) / 2f + 0.5f);
                 var xOffset = offsetFactor * (card.RT.rect.width + spacing);
                 var rowPos = row.GetScreenPos(xOffset);
-                card.MoveTo(rowPos, cardMoveTime: 0.35f);
+
+                card.MoveTo(rowPos, moveTime);
             });
 
             var targetPos = row.RT().GetScreenPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
             card.RT.SetParent(row);
-            card.CardButton.DisableAndRemoveHandlers();
-            card.MoveTo(targetPos, dontReverse: forEnemy, cardMoveTime: 0.35f, effects: Card.MoveEffect.Scale2D, onDone: () =>
-            {
-                RectTransformUtility.ScreenPointToWorldPointInRectangle(
-                    card.RT, card.RT.position, FindAnyObjectByType<Camera>(), out var pnt);
-            });
+            card.CardButton.RemoveHandlers();
+            UILayoutRebuilder.Rebuild(card.gameObject);
+            card.GrayOff();
+            card.MoveTo(targetPos, moveTime, effects);
             count++;
 
-            if (count == 6 && !forEnemy)
-                _playerHandIO.Parent
+            if (count == 6)
+                row
                    .GetChildren<Card>()
                    .ForEach(card => card.CardButton.RemoveHandlers())
                    .Then(onDone);

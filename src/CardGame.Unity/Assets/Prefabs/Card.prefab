@@ -3573,8 +3573,8 @@ RectTransform:
   - {fileID: 4708020369819024151}
   - {fileID: 7968072786660269931}
   - {fileID: 8250941326201563496}
-  - {fileID: 3607420388067542563}
   - {fileID: 6653923032050199195}
+  - {fileID: 3607420388067542563}
   - {fileID: 4053181346806250833}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3639,8 +3639,8 @@ MonoBehaviour:
   _hpText: {fileID: 2732770406256710601}
   _attackText: {fileID: 3164898183006682611}
   CardButton: {fileID: 6823301552346063145}
-  ReversedCardButton: {fileID: 2066260134033618609}
-  _image: {fileID: 5387587287167745181}
+  _aversBgImage: {fileID: 2133934298805289155}
+  _reverseBgImage: {fileID: 2256435681174315853}
   _cardTypeIcon: {fileID: 8584112417324761483}
   _heroCardIcon: {fileID: 21300000, guid: 44530625bb21c694e82fe8906d79695c, type: 3}
   _unitCardIcon: {fileID: 21300000, guid: 6187b7fd180120640bbd2a295c7cb15f, type: 3}

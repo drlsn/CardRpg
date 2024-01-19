@@ -28,9 +28,9 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private TMP_Text _attackText;
 
         public SwipeTapHoldController CardButton;
-        public SwipeTapHoldController ReversedCardButton;
 
-        [SerializeField] private Image _image;
+        [SerializeField] private Image _aversBgImage;
+        [SerializeField] private Image _reverseBgImage;
 
         [SerializeField] private Image _cardTypeIcon;
 
@@ -231,7 +231,6 @@ namespace CardRPG.UI.Gameplay
 
         public void MoveTo(
             Vector2 targetPos,
-            bool dontReverse = false,
             float cardMoveTime = 0.75f,
             MoveEffect effects = MoveEffect.None,
             Action onDone = null)
@@ -269,8 +268,7 @@ namespace CardRPG.UI.Gameplay
                         cardMoveTime / 2,
                         onDone: () =>
                         {
-                            ReversedCardButton.SetActive(dontReverse);
-                            //_descText.SetActive(false);
+                            _reverseBgImage.SetActive(false);
                             LerpFunctions.LerpScale2D(
                                 StartCoroutine,
                                 RT,
@@ -289,8 +287,7 @@ namespace CardRPG.UI.Gameplay
                             cardMoveTime / 3,
                             onDone: () =>
                             {
-                                ReversedCardButton.SetActive(dontReverse);
-                                //_descText.SetActive(false);
+                                _reverseBgImage.SetActive(false);
                                 LerpFunctions.LerpScaleX(
                                     StartCoroutine,
                                     RT,

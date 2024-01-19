@@ -5,7 +5,7 @@ namespace Core.Unity
 {
     public static class InstantiateExtensions
     {
-        public static T Instantiate<T>(this T prefab, Transform parent)
+        public static T Instantiate<T>(this T prefab, Transform parent = null)
             where T : Component
         {
             if (prefab.transform is RectTransform rt)

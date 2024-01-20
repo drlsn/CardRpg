@@ -374,10 +374,10 @@ namespace Core.Unity.Transforms
 
             lerpAction(() =>
             {
-                //rt.pivot = previousPivot;
+                canvas.overrideSorting = false;
+                canvas.sortingOrder = 0;
                 rt.gameObject.Remove<Canvas>();
-                var canvas = rt.GetComponent<Canvas>();
-                (canvas == null).IfFalseDo(() => Debug.Log("Still exists"));
+                (rt.GetComponent<Canvas>() == null).IfFalseDo(() => Debug.Log("Still exists"));
             });
         }
 

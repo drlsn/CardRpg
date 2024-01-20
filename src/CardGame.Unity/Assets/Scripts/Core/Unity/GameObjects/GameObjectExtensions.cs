@@ -155,7 +155,7 @@ namespace Core.Unity
 
             if (@object is GameObject go)
             {
-                var c = go.GetComponent<T>();
+                var c = go.GetChildren<T>().FirstOrDefault();
                 if (c)
                 {
                     if (c is Behaviour behaviour)

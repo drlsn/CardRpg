@@ -98,17 +98,11 @@ namespace CardRPG.UI.Gameplay
 
         private void AnimateMixingCards(Action onDone)
         {
-            var enemyDeck = _enemyDeck.Instantiate(_enemyDeck.transform.parent);
-            var myDeck = _myDeck.Instantiate(_myDeck.transform.parent);
-            UILayoutRebuilder.Rebuild(myDeck.gameObject);
-
-            _enemyDeck.gameObject.SetActive(false);
-            _myDeck.gameObject.SetActive(false);
-
             var cardMoveTime = 0.75f;
-            myDeck.AnimateMixingCards(isMe: true, targetPos: _middleRow.GetScreenCenterPos(xOffset: -200), _commonDeck.RT, cardMoveTime);
-            enemyDeck.AnimateMixingCards(isMe: false, _middleRow.GetScreenCenterPos(xOffset: 200), _commonDeck.RT, cardMoveTime, 
-                onDone: onDone.Then(enemyDeck.Destroy).Then(myDeck.Destroy));
+
+            _myDeck.AnimateMixingCards(isMe: true, targetPos: _middleRow.GetScreenCenterPos(xOffset: -200), _commonDeck.RT, cardMoveTime);
+            _enemyDeck.AnimateMixingCards(isMe: false, _middleRow.GetScreenCenterPos(xOffset: 200), _commonDeck.RT, cardMoveTime, 
+                onDone: onDone);
         }
 
         private void StartTakeCardsToHand(Action onDone)

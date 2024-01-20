@@ -157,7 +157,13 @@ namespace Core.Unity
             {
                 var c = go.GetComponent<T>();
                 if (c)
+                {
+                    if (c is Behaviour behaviour)
+                        behaviour.enabled = false;
+
                     GameObject.Destroy(c);
+                    GameObject.DestroyImmediate(c);
+                }
             }
 
             return default;

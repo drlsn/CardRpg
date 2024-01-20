@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 namespace Core.Unity.UI.Taps
 {
-    public class SwipeDetector : UnityScript, IPointerDownHandler
+    public class SwipeDetector : UnityScript
     {
         [SerializeField] private float _maxSwipeTime = 1f;
         [SerializeField] private float _minSwipeDistance = 50f;
@@ -16,9 +16,18 @@ namespace Core.Unity.UI.Taps
         public event Action OnDetected;
 
         private Vector2 _lastMousePos;
+        private RectTransform _rt;
+
+        private void Awake()
+        {
+            _rt = this.RT();
+        }
 
         private void Update()
         {
+            if (Input.GetMouseButtonDown(0) && Input.mousePosition.IsInRect(_rt))
+                OnPointerDown(null);
+
             if (_tapStartTime == 0)
                 return;
 

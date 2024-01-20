@@ -1,3 +1,4 @@
+using CardRPG.Entities.Gameplay;
 using CardRPG.UI.Infrastructure;
 using CardRPG.UI.UseCases;
 using CardRPG.UseCases;
@@ -5,6 +6,7 @@ using Core.Basic;
 using Core.Collections;
 using Core.Functional;
 using Core.Unity;
+using Core.Unity.Math;
 using Core.Unity.Scripts;
 using Core.Unity.UI;
 using System;
@@ -18,18 +20,21 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private RectTransform _enemyBackRow;
         [SerializeField] private RectTransform _enemyHandRow;
         [SerializeField] private RectTransform _enemyBattleRow;
-        [SerializeField] private Card _enemyDeck;
 
         // Player
         [SerializeField] private RectTransform _playerBattleRow;
         [SerializeField] private RectTransform _playerHandRow;
         [SerializeField] private RectTransform _playerBackRow;
-        [SerializeField] private Card _myDeck;
 
-        [SerializeField] private Card _commonDeck;
         [SerializeField] private RectTransform _middleRow;
 
         [SerializeField] private PlayerActionController _playerActionController;
+
+        [SerializeField] private Card _cardPrefab;
+
+        private Card _myDeck;
+        private Card _enemyDeck;
+        [SerializeField] private Card _commonDeck;
 
         private IGameplayService _gameplayService;
 
@@ -50,6 +55,8 @@ namespace CardRPG.UI.Gameplay
         {
             var steps = new ActionStepController();
 
+            steps += Wait(0.5f);
+            steps += SpawnHeroesAndDecks;
             steps += Show("Mixing Cards");
             steps += AnimateMixingCards;
             //steps += Wait(0.5f);
@@ -63,23 +70,45 @@ namespace CardRPG.UI.Gameplay
             RunAsCoroutine(steps.Execute);
         }
 
-        public void SpawnHeroes(float moveTime, Action onDone)
+        private void SpawnHeroesAndDecks(Action onDone)
         {
-            
+            // Heroes
+            MoveInCard(_playerBackRow, isLeft: false, yOffset: 5, onDone).Turn(true);
+            MoveInCard(_enemyBackRow, isLeft: true, yOffset: -5).Turn(true);
+
+            // Decks
+            _myDeck = MoveInCard(_playerBackRow, isLeft: true, yOffset: 5, onDone);
+            _enemyDeck = MoveInCard(_enemyBackRow, isLeft: false, yOffset: -5);
+        }
+
+        private Card MoveInCard(RectTransform row, bool isLeft, float yOffset, Action onDone = null)
+        {
+            var card = _cardPrefab.Instantiate(row);
+
+            var sign = isLeft ? -1 : 1;
+            var xOffset = sign * (row.GetRTWidth() + card.RT.GetRTWidth()) / 2;
+            var initPos = row.GetScreenCenterPos(xOffset, yOffset);
+            card.RT.pivot = Vector2X.Half;
+            card.RT.position = initPos;
+
+            card.MoveTo(initPos.AddX(-sign * (card.RT.GetRTWidth() * card.RT.lossyScale.x + 10)), cardMoveTime: 0.75f, onDone: onDone);
+
+            return card;
         }
 
         private void AnimateMixingCards(Action onDone)
         {
             var enemyDeck = _enemyDeck.Instantiate(_enemyDeck.transform.parent);
             var myDeck = _myDeck.Instantiate(_myDeck.transform.parent);
+            UILayoutRebuilder.Rebuild(myDeck.gameObject);
 
             _enemyDeck.gameObject.SetActive(false);
             _myDeck.gameObject.SetActive(false);
 
             var cardMoveTime = 0.75f;
-            myDeck.AnimateMixingCards(isMe: true, targetPos: _middleRow.GetCenter(xOffset: -200), _commonDeck.RT, cardMoveTime);
-            enemyDeck.AnimateMixingCards(isMe: false, _middleRow.GetCenter(xOffset: 200), _commonDeck.RT, cardMoveTime, onDone: 
-                onDone.Then(enemyDeck.Destroy).Then(myDeck.Destroy));
+            myDeck.AnimateMixingCards(isMe: true, targetPos: _middleRow.GetScreenCenterPos(xOffset: -200), _commonDeck.RT, cardMoveTime);
+            enemyDeck.AnimateMixingCards(isMe: false, _middleRow.GetScreenCenterPos(xOffset: 200), _commonDeck.RT, cardMoveTime, 
+                onDone: onDone.Then(enemyDeck.Destroy).Then(myDeck.Destroy));
         }
 
         private void StartTakeCardsToHand(Action onDone)
@@ -106,9 +135,10 @@ namespace CardRPG.UI.Gameplay
 
             MoveCardToRow(card, row, Card.MoveEffect.Scale3D, moveTime, onDone: () =>
             {
-                (_myDeck + _commonDeck)
-                    .ForEach(x => x.HideArrow().CardButton.RemoveHandlers())
-                    .Then(onDone);
+                if (row.GetComponentsInChildren<Card>().Length == 6) 
+                    (_myDeck + _commonDeck)
+                        .ForEach(x => x.HideArrow().CardButton.RemoveHandlers())
+                        .Then(onDone);
             });
 
             _gameplayService.Send(new TakeCardToHandCommand(!forEnemy));
@@ -140,12 +170,12 @@ namespace CardRPG.UI.Gameplay
             {
                 var offsetFactor = (float) (i - (count + 1) / 2f + 0.5f);
                 var xOffset = offsetFactor * (card.RT.rect.width + spacing);
-                var rowPos = row.GetCenter(xOffset);
+                var rowPos = row.GetScreenCenterPos(xOffset);
 
                 card.MoveTo(rowPos, moveTime);
             });
 
-            var targetPos = row.RT().GetCenter(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
+            var targetPos = row.RT().GetScreenCenterPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
             card.RT.SetParent(row);
             card.CardButton.RemoveHandlers();
             UILayoutRebuilder.Rebuild(card.gameObject);

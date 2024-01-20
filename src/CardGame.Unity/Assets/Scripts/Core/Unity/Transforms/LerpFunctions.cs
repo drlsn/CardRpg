@@ -1,12 +1,11 @@
 ﻿using Common.Unity.Functional;
 using Core.Collections;
+using Core.Functional;
 using Core.Maths;
 using Core.Unity.Math;
-using Core.Unity.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.UI;
 using static Core.Maths.LerpingFunctions;
@@ -375,8 +374,10 @@ namespace Core.Unity.Transforms
 
             lerpAction(() =>
             {
-                rt.pivot = Vector2X.Half;
+                //rt.pivot = previousPivot;
                 rt.gameObject.Remove<Canvas>();
+                var canvas = rt.GetComponent<Canvas>();
+                (canvas == null).IfFalseDo(() => Debug.Log("Still exists"));
             });
         }
 

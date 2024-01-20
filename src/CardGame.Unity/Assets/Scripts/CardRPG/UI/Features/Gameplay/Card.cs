@@ -102,6 +102,9 @@ namespace CardRPG.UI.Gameplay
 
         public bool IsMoving { get; private set; }
 
+        public void Turn(bool? toAvers = null) =>
+            _reverseBgImage.SetActive(toAvers.HasValue ? !toAvers.Value : _reverseBgImage.IsActive());
+
         public void AnimateMixingCards(
             bool isMe,
             Vector2 targetPos,
@@ -119,7 +122,7 @@ namespace CardRPG.UI.Gameplay
                     RT,
                     targetPos,
                     cardMoveTime,
-                    onDone: () => AnimateCascade(MoveOwnDeckBack));
+                    onDone: restore.Then(() => AnimateCascade(MoveOwnDeckBack)));
 
                 initialPos = RT.position;
                 LerpFunctions.LerpRotationZ(
@@ -158,7 +161,8 @@ namespace CardRPG.UI.Gameplay
                         StartCoroutine,
                         RT,
                         initialPos,
-                        cardMoveTime);
+                        cardMoveTime,
+                        onDone: restore);
 
                     LerpFunctions.LerpRotationZ(
                         StartCoroutine,
@@ -189,7 +193,7 @@ namespace CardRPG.UI.Gameplay
                     LerpFunctions.LerpPosition2D(
                         StartCoroutine,
                         card.RT,
-                        commonDeckTarget.GetCenter(),
+                        commonDeckTarget.GetScreenCenterPos(),
                         cardMoveTime,
                         onDone: restore
                             .Then(onDone)
@@ -245,8 +249,8 @@ namespace CardRPG.UI.Gameplay
                     onDone: () =>
                     {
                         IsMoving = false;
-                        onDone?.Invoke();
                         restore();
+                        onDone?.Invoke();
                     });
 
                 if ((effects & MoveEffect.Rotate) != 0)

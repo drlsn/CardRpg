@@ -1,9 +1,7 @@
 ﻿using Core.Collections;
-using Core.Functional;
 using Core.Unity.Scripts;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Core.Unity.UI.Taps
@@ -36,20 +34,20 @@ namespace Core.Unity.UI.Taps
 
         private void Awake()
         {
-            var tapDetectors = Enumerable
-                .Range(0, 3 - GetComponents<MultiTapDetector>().Length)
-                .ForEach(i => gameObject.AddComponent<MultiTapDetector>())
-                .ThenReturn(GetComponents<MultiTapDetector>());
+            //var tapDetectors = Enumerable
+            //    .Range(0, 3 - GetComponents<MultiTapDetector>().Length)
+            //    .ForEach(i => gameObject.AddComponent<MultiTapDetector>())
+            //    .ThenReturn(GetComponents<MultiTapDetector>());
 
-            _tapDetector = tapDetectors[0];
-            _tapDoubleDetector = tapDetectors[1];
-            _tapTripleDetector = tapDetectors[2];
+            _tapDetector = GetComponent<MultiTapDetector>();// tapDetectors[0];
+            //_tapDoubleDetector = tapDetectors[1];
+            //_tapTripleDetector = tapDetectors[2];
             _holdDetector = GetComponent<HoldDetector>();
             _swipeDetector = GetComponent<SwipeDetector>();
 
             _tapDetector.OnDetected += OnTapDetected;
-            _tapDoubleDetector.OnDetected += OnTapDoubleDetected;
-            _tapTripleDetector.OnDetected += OnTapTripleDetected;
+            //_tapDoubleDetector.OnDetected += OnTapDoubleDetected;
+            //_tapTripleDetector.OnDetected += OnTapTripleDetected;
             _holdDetector.OnDetected += OnHoldDetected;
             _swipeDetector.OnDetected += OnSwipeDetected;
         }
@@ -67,8 +65,8 @@ namespace Core.Unity.UI.Taps
         private void OnDestroy()
         {
             _tapDetector.OnDetected -= OnTapDetected;
-            _tapDoubleDetector.OnDetected -= OnTapDoubleDetected;
-            _tapTripleDetector.OnDetected -= OnTapTripleDetected;
+            //_tapDoubleDetector.OnDetected -= OnTapDoubleDetected;
+            //_tapTripleDetector.OnDetected -= OnTapTripleDetected;
             _holdDetector.OnDetected -= OnHoldDetected;
             _swipeDetector.OnDetected -= OnSwipeDetected;
         }

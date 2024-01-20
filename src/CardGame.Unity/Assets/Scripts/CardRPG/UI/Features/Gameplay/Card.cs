@@ -114,6 +114,8 @@ namespace CardRPG.UI.Gameplay
             Action onDone = null)
         {
             var initialPos = RT.position;
+            
+            HideArrow();
 
             LerpFunctions.BeginLerp(RT, restore =>
             {

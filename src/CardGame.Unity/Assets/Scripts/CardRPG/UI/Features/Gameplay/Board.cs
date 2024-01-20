@@ -73,7 +73,7 @@ namespace CardRPG.UI.Gameplay
         private void SpawnHeroesAndDecks(Action onDone)
         {
             // Heroes
-            MoveInCard(_playerBackRow, isLeft: false, yOffset: 5, onDone).Turn(true);
+            MoveInCard(_playerBackRow, isLeft: false, yOffset: 5).Turn(true);
             MoveInCard(_enemyBackRow, isLeft: true, yOffset: -5).Turn(true);
 
             // Decks
@@ -100,6 +100,9 @@ namespace CardRPG.UI.Gameplay
         {
             var cardMoveTime = 0.75f;
 
+            _myDeck.HideArrow();
+            _enemyDeck.HideArrow();
+
             _myDeck.AnimateMixingCards(isMe: true, targetPos: _middleRow.GetScreenCenterPos(xOffset: -200), _commonDeck.RT, cardMoveTime);
             _enemyDeck.AnimateMixingCards(isMe: false, _middleRow.GetScreenCenterPos(xOffset: 200), _commonDeck.RT, cardMoveTime, 
                 onDone: onDone);
@@ -111,7 +114,6 @@ namespace CardRPG.UI.Gameplay
             _enemyDeck.gameObject.SetActive(true);
 
             _commonDeck.gameObject.SetActive(true);
-
             _myDeck.ShowArrow();
             _commonDeck.ShowArrow();
             _enemyDeck.GrayOn();

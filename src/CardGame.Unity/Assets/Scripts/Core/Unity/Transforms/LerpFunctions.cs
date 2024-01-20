@@ -1,6 +1,5 @@
 ﻿using Common.Unity.Functional;
 using Core.Collections;
-using Core.Functional;
 using Core.Maths;
 using Core.Unity.Math;
 using System;
@@ -377,7 +376,6 @@ namespace Core.Unity.Transforms
                 canvas.overrideSorting = false;
                 canvas.sortingOrder = 0;
                 rt.gameObject.Remove<Canvas>();
-                (rt.GetComponent<Canvas>() == null).IfFalseDo(() => Debug.Log("Still exists"));
             });
         }
 

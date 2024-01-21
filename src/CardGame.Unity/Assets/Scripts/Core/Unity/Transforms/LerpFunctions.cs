@@ -360,21 +360,21 @@ namespace Core.Unity.Transforms
 
         #region Lerp Complex
 
+        private static int _sortingIndex = 10;
         public static void BeginLerp(
             RectTransform rt,
             Action<Action> lerpAction)
         {
             var canvas = rt.GetOrAddComponent<Canvas>();
             canvas.overrideSorting = true;
-            canvas.sortingOrder = 1000;
+            canvas.sortingOrder = _sortingIndex;
+            _sortingIndex++;
 
             var previousPivot = rt.pivot;
             rt.pivot = Vector2X.Half;
 
             lerpAction(() =>
-            {
-                canvas.overrideSorting = false;
-                canvas.sortingOrder = 0;
+            {   
                 rt.gameObject.Remove<Canvas>();
             });
         }

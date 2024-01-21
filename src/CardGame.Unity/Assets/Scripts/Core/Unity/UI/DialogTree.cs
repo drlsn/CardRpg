@@ -1,9 +1,11 @@
 ﻿using Core.Collections;
+using Core.Functional;
 using Core.Unity.Transforms;
 using Core.Unity.UI.Taps;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,6 +32,8 @@ namespace Core.Unity.UI
             _dialogParentBg.transform.position = ScreenEx.Center;
             _dialogParentBg.StretchToExtents();
             _dialogParentBg.enabled = false;
+            _dialogParentBg.GetComponent<Button>().onClick
+                .AddListener(() => Back());
         }
 
         public void ShowDialog(
@@ -53,7 +57,7 @@ namespace Core.Unity.UI
             dialog.localScale = Vector3.zero;
             UILayoutRebuilder.Rebuild(dialog.gameObject);
 
-            LerpDialog(dialog, ScreenEx.Center, 1, onDone: () =>
+            LerpDialog(dialog, ScreenEx.Center, targetScale: 1, onDone: () =>
             {
                 _dialogParentBg.enabled = true;
             });
@@ -61,9 +65,12 @@ namespace Core.Unity.UI
 
         public void Back()
         {
+            if (!_stack.Any())
+                return;
+
             var dialogInfo = _stack.Pop();
 
-            LerpDialog(dialogInfo.Instance, dialogInfo.InitialPos, 0, onDone: () =>
+            LerpDialog(dialogInfo.Instance, dialogInfo.InitialPos, targetScale: 0, onDone: () =>
             {
                 dialogInfo.Instance.Destroy();
                 _dialogParentBg.enabled = false;
@@ -79,7 +86,7 @@ namespace Core.Unity.UI
             RectTransform rt, 
             Vector2 targetPos, 
             float targetScale,
-            float time = 0.5f,
+            float time = 0.3f,
             Action onDone = null)
         {
             LerpFunctions.BeginLerp(rt, restore =>
@@ -89,7 +96,7 @@ namespace Core.Unity.UI
                    rt,
                    targetPos,
                    time,
-                   onDone: onDone);
+                   onDone: restore.Then(onDone));
 
                 LerpFunctions.LerpScale2D(
                    _startCoroutine,

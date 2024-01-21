@@ -30,6 +30,10 @@ namespace Core.Unity.UI.Taps
         private readonly List<Action> _onSwipeHandlers = new();
         private readonly List<Action> _onHoldHandlers = new();
 
+        private readonly List<Action> _toAddOnTapHandlers = new();
+        private readonly List<Action> _toAddOnSwipeHandlers = new();
+        private readonly List<Action> _toAddOnHoldHandlers = new();
+
         private bool _removeHandlers;
 
         private void Awake()
@@ -52,9 +56,9 @@ namespace Core.Unity.UI.Taps
             _swipeDetector.OnDetected += OnSwipeDetected;
         }
 
-        public void OnTap(Action handler) => _onTapHandlers.Add(handler);
-        public void OnSwipe(Action handler) => _onSwipeHandlers.Add(handler);
-        public void OnHold(Action handler) => _onHoldHandlers.Add(handler);
+        public void OnTap(Action handler) => _toAddOnTapHandlers.Add(handler);
+        public void OnSwipe(Action handler) => _toAddOnSwipeHandlers.Add(handler);
+        public void OnHold(Action handler) => _toAddOnHoldHandlers.Add(handler);
 
         private void OnTapDetected() => _wasTap = true;
         private void OnTapDoubleDetected() => _wasDoubleTap = true;
@@ -124,6 +128,14 @@ namespace Core.Unity.UI.Taps
 
                 _removeHandlers = false;
             }
+
+            _onTapHandlers.AddRange(_toAddOnTapHandlers);
+            _onSwipeHandlers.AddRange(_toAddOnSwipeHandlers);
+            _onHoldHandlers.AddRange(_toAddOnHoldHandlers);
+
+            _toAddOnTapHandlers.Clear();
+            _toAddOnSwipeHandlers.Clear();
+            _toAddOnHoldHandlers.Clear();
         }
     }
 }

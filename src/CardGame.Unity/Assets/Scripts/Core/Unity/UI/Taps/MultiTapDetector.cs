@@ -33,7 +33,7 @@ namespace Core.Unity.UI.Taps
                 return;
 
             if ((Taps == 1 && _tapCount == 1 && Time.time < _lastTapDownStartTime + _maxTimeBetweenTaps) ||
-                (_tapCount == Taps && Time.time < _lastTapUpStartTime + _maxTimeBetweenTaps))
+                (Taps > 1 && _tapCount == Taps && Time.time < _lastTapUpStartTime + _maxTimeBetweenTaps))
             {
                 _lastTapUpStartTime = 0;
                 _lastTapDownStartTime = 0;

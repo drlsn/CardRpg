@@ -1,3 +1,4 @@
+using CardRPG.Entities.Gameplay;
 using CardRPG.UI.GUICommands;
 using CardRPG.UI.Infrastructure;
 using CardRPG.UI.UseCases;
@@ -8,7 +9,6 @@ using Core.Functional;
 using Core.Unity;
 using Core.Unity.Math;
 using Core.Unity.Scripts;
-using Core.Unity.Transforms;
 using Core.Unity.UI;
 using System;
 using System.Linq;
@@ -55,7 +55,8 @@ namespace CardRPG.UI.Gameplay
             _rt = this.RT();
 
             _gameplayService = new OfflineGameplayService(StartCoroutine);
-            _gameplayService.Subscribe<CardTakenToHandEvent>(On);
+            _gameplayService.Subscribe<EnemyCardTakenToHandEvent>(OnEnemyCardTakenToHandEvent);
+            _gameplayService.Subscribe<EnemyCardLaidToBattleEvent>(OnEnemyCardLaidToBattleEvent);
 
             _dialogTree = new(_rt, _dialogTreeBg, StartCoroutine);
 
@@ -70,9 +71,17 @@ namespace CardRPG.UI.Gameplay
                     .IfFalseDo(FindObjectOfType<GoToMenuGUICommand>().Execute);
         }
 
-        private void On(CardTakenToHandEvent ev)
+        private void OnEnemyCardTakenToHandEvent(EnemyCardTakenToHandEvent ev)
         {
             TakeCardToHand(onDone: null, forEnemy: true, ev.IsFromCommonDeck);
+        }
+
+        private void OnEnemyCardLaidToBattleEvent(EnemyCardLaidToBattleEvent ev)
+        {
+            var card = _enemyHandRow.GetComponentsInChildren<Card>().GetRandom();
+            card.Init(ev.Card, isEnemy: true);
+
+            LayCardToBattle(card, forEnemy: true, onDone: null);
         }
 
         public void Rebuild(GetGameStateQueryOut dto)
@@ -96,19 +105,20 @@ namespace CardRPG.UI.Gameplay
 
         private void SpawnHeroesAndDecks(Action onDone)
         {
+            Card InitHero(RectTransform row, bool isLeft) =>
+                   MoveInCard(row, isLeft, yOffset: (isLeft ? -1 : 1) * 5)
+                       .Then(card => card.Turn(true))
+                       .Then(card => card.AddCardDetailsOnTapHandler(_cardBigPrefab.RT, _dialogTree))
+                       .Then(card => card.Init(new Entities.Gameplay.Card(null, OfflineGameplayService.Names.GetRandom(), null, -1), isLeft)); 
+
             // Heroes
-            _playerHero = MoveInCard(_playerBackRow, isLeft: false, yOffset: 5);
-            _enemyHero = MoveInCard(_enemyBackRow, isLeft: true, yOffset: -5);
-
-            _playerHero.Turn(true);
-            _enemyHero.Turn(true);
-
-            _playerHero.AddCardDetailsOnTapHandler(_cardBigPrefab.RT, _dialogTree);
-            _enemyHero.AddCardDetailsOnTapHandler(_cardBigPrefab.RT, _dialogTree);
+            _playerHero = InitHero(_playerBackRow, isLeft: false);
+            _enemyHero = InitHero(_enemyBackRow, isLeft: true);
 
             // Decks
-            _myDeck = MoveInCard(_playerBackRow, isLeft: true, yOffset: 5, onDone);
-            _enemyDeck = MoveInCard(_enemyBackRow, isLeft: false, yOffset: -5);
+            _myDeck = MoveInCard(_playerBackRow, isLeft: true, yOffset: 5, onDone).Then(card => card.Turn(false));
+            _enemyDeck = MoveInCard(_enemyBackRow, isLeft: false, yOffset: -5).Then(card => card.Turn(false));
+            _commonDeck.Turn(false);
         }
 
         private Card MoveInCard(RectTransform row, bool isLeft, float yOffset, Action onDone = null)
@@ -148,7 +158,7 @@ namespace CardRPG.UI.Gameplay
             _commonDeck.ShowArrow();
             _enemyDeck.GrayOn();
 
-            _myDeck.CardButton.OnSwipe(() => TakeCardToHand(onDone, moveTime: 4f));
+            _myDeck.CardButton.OnSwipe(() => TakeCardToHand(onDone));
             _commonDeck.CardButton.OnSwipe(() => TakeCardToHand(onDone, fromCommonDeck: true));
         }
 
@@ -158,8 +168,11 @@ namespace CardRPG.UI.Gameplay
 
             var sourceCard = fromCommonDeck ? _commonDeck : (forEnemy ? _enemyDeck : _myDeck);
             Card card = null;
-            MoveCardToRow(() => card = sourceCard.Instantiate(), row, Card.MoveEffect.Scale3D, moveTime, toAversOrRevers: forEnemy, onDone: () =>
+            MoveCardToRow(
+                getCard: () => card = sourceCard.Instantiate().Then(card => card.Turn(false)), 
+                row, Card.MoveEffect.Scale3D, moveTime, toAversOrRevers: !forEnemy, onDone: () =>
             {
+                card.Init(new Entities.Gameplay.Card(null, OfflineGameplayService.Names.GetRandom(), null, -1), forEnemy);
                 if (row.GetComponentsInChildren<Card>().Length == 6) 
                     (_myDeck + _commonDeck)
                         .ForEach(x => x.HideArrow().CardButton.RemoveHandlers())
@@ -169,7 +182,8 @@ namespace CardRPG.UI.Gameplay
                     card.AddCardDetailsOnTapHandler(_cardBigPrefab.RT, _dialogTree);
             });
 
-            _gameplayService.Send(new TakeCardToHandCommand(!forEnemy));
+            if (!forEnemy)
+                _gameplayService.Send(new TakeCardToHandCommand("player-x", "card-x"));
         }
 
         private void StartLayingCardsToBattle(Action onDone)
@@ -183,7 +197,11 @@ namespace CardRPG.UI.Gameplay
         public void LayCardToBattle(Card card, bool forEnemy = false, float moveTime = 0.35f, Action onDone = null)
         {
             var row = forEnemy ? _enemyBattleRow : _playerBattleRow;
-            MoveCardToRow(() => card, row, Card.MoveEffect.Scale2D, moveTime, onDone: () =>
+            if (!forEnemy)
+                _gameplayService.Send(new LayCardToBattleCommand("player-x", "card-x"));
+
+            var effects = !forEnemy ? Card.MoveEffect.Scale2D : Card.MoveEffect.Scale3D | Card.MoveEffect.Rotate;
+            MoveCardToRow(() => card, row, effects, moveTime, toAversOrRevers: true, onDone: () =>
             {
                 if (forEnemy)
                     card.AddCardDetailsOnTapHandler(_cardBigPrefab.RT, _dialogTree);
@@ -203,7 +221,7 @@ namespace CardRPG.UI.Gameplay
             var cards = row.GetComponentsInChildren<Card>();
             var count = cards.Length;
 
-            if (cards.Any(card => card.IsMoving))
+            if (cards.Any(card => card.IsMoving) || cards.Length >= 6)
                 return;
 
             var spacing = 20;

@@ -68,8 +68,8 @@ namespace CardRPG.UI.Gameplay
             _isEnemy = isEnemy;
 
             _nameText.text = card.Name;
-            _hpText.text = card.Statistics.HP.CalculatedValue.ToString();// + " HP";    
-            _attackText.text = card.Statistics.Attack.CalculatedValue.ToString();// + " AT";
+            //_hpText.text = card.Statistics.HP.CalculatedValue.ToString();// + " HP";    
+            //_attackText.text = card.Statistics.Attack.CalculatedValue.ToString();// + " AT";
 
             //_image.sprite = _cardImages.Sprites[card.ImageIndex];
         }
@@ -295,7 +295,7 @@ namespace CardRPG.UI.Gameplay
                             onDone: () =>
                             {
                                 if (toAversOrRevers.HasValue)
-                                    _reverseBgImage.SetActive(toAversOrRevers.Value);
+                                    _reverseBgImage.SetActive(!toAversOrRevers.Value);
 
                                 LerpFunctions.LerpScaleX(
                                     StartCoroutine,

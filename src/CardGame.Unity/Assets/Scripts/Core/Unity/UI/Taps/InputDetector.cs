@@ -15,9 +15,11 @@ namespace Core.Unity.UI.Taps
         }
 
         protected bool IsPointerDown() =>
-            Input.GetMouseButtonDown(0) && Input.mousePosition.IsInRect(_rt);
+            (Input.GetMouseButtonDown(0) || Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Began) && 
+            Input.mousePosition.IsInRect(_rt);
 
         protected bool IsPointerUp() =>
-            Input.GetMouseButtonUp(0) && Input.mousePosition.IsInRect(_rt);
+            (Input.GetMouseButtonUp(0) || Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Ended)
+            && Input.mousePosition.IsInRect(_rt);
     }
 }

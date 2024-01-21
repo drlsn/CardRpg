@@ -158,8 +158,8 @@ namespace CardRPG.UI.Gameplay
             _commonDeck.ShowArrow();
             _enemyDeck.GrayOn();
 
-            _myDeck.CardButton.OnSwipe(() => TakeCardToHand(onDone));
-            _commonDeck.CardButton.OnSwipe(() => TakeCardToHand(onDone, fromCommonDeck: true));
+            _myDeck.OnSwipe(() => TakeCardToHand(onDone));
+            _commonDeck.OnSwipe(() => TakeCardToHand(onDone, fromCommonDeck: true));
         }
 
         public void TakeCardToHand(Action onDone, bool forEnemy = false, bool fromCommonDeck = false, float moveTime = 0.35f)
@@ -175,7 +175,7 @@ namespace CardRPG.UI.Gameplay
                 card.Init(new Entities.Gameplay.Card(null, OfflineGameplayService.Names.GetRandom(), null, -1), forEnemy);
                 if (row.GetComponentsInChildren<Card>().Length == 6) 
                     (_myDeck + _commonDeck)
-                        .ForEach(x => x.HideArrow().CardButton.RemoveHandlers())
+                        .ForEach(x => x.HideArrow().RemoveAllHandlers())
                         .Then(onDone);
                 
                 if (!forEnemy)
@@ -190,7 +190,7 @@ namespace CardRPG.UI.Gameplay
         {
             _playerHandRow
                 .GetChildren<Card>()
-                .ForEach(card => card.CardButton
+                .ForEach(card => card
                     .Then(c => c.OnSwipe(() => LayCardToBattle(card, onDone: onDone))));
         }
 
@@ -205,6 +205,7 @@ namespace CardRPG.UI.Gameplay
             {
                 if (forEnemy)
                     card.AddCardDetailsOnTapHandler(_cardBigPrefab.RT, _dialogTree);
+
                 onDone?.Invoke();
             });
         }
@@ -238,7 +239,7 @@ namespace CardRPG.UI.Gameplay
             var targetPos = row.RT().GetScreenCenterPos(xOffset: card.RT.rect.width * ((float) count / 2) + spacing * (count / 2f));
 
             card.RT.SetParent(row);
-            card.CardButton.RemoveHandlers();
+            card.RemoveSwipeHandlers();
             UILayoutRebuilder.Rebuild(card.gameObject);
             card.GrayOff();
             card.MoveTo(targetPos, moveTime, effects, toAversOrRevers, onDone);
@@ -249,6 +250,6 @@ namespace CardRPG.UI.Gameplay
     static class Extensions
     {
         public static void AddCardDetailsOnTapHandler(this Card card, RectTransform cardBigPrefab, DialogTree dialogTree) =>
-            card.CardButton.OnTap(() => dialogTree.ShowDialog(cardBigPrefab, card.RT.GetScreenCenterPos()));
+            card.OnTap(() => dialogTree.ShowDialog(cardBigPrefab, card.RT.GetScreenCenterPos()));
     }
 }

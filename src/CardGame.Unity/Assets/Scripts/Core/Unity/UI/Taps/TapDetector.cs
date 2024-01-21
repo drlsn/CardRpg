@@ -4,16 +4,19 @@ using UnityEngine.EventSystems;
 
 namespace Core.Unity.UI.Taps
 {
-    public class SwipeDetector : InputDetector
+    public class TapDetector : InputDetector, IPointerDownHandler
     {
-        private float _maxSwipeTime = 1f;
-        private float _minSwipeDistance = 50f;
-
-        private long _tapStartTime;
-        private Vector2 _drag;
+        private float _lastTapTimeThreshold = 0.3f;
+        private float _maxTimeBetweenTaps = 0.25f;
+        private float _maxSwipeDistance = 10f;
 
         public Action OnDetected;
 
+        private bool _isDown;
+        private float _lastTapDownStartTime;
+        private float _lastTapUpStartTime;
+
+        private Vector2 _drag;
         private Vector2 _lastMousePos;
 
         private void Update()
@@ -23,9 +26,6 @@ namespace Core.Unity.UI.Taps
 
             if (IsPointerDown())
                 OnPointerDown(null);
-
-            if (_tapStartTime == 0)
-                return;
 
             if (Input.GetMouseButtonDown(0))
             {
@@ -37,37 +37,40 @@ namespace Core.Unity.UI.Taps
                 _drag += Input.GetTouch(0).deltaPosition;
             }
             else
+            if (Input.GetMouseButton(0))
             {
                 _drag += (Vector2) Input.mousePosition - _lastMousePos;
                 _lastMousePos = Input.mousePosition;
             }
 
-            if (DateTime.UtcNow.Ticks <= (_tapStartTime + (long) (_maxSwipeTime * TimeSpan.TicksPerSecond)))
+            if (_drag.magnitude > _maxSwipeDistance)
             {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                if (_drag.magnitude >= _minSwipeDistance)
-#else
-                if (_drag.magnitude >= _minSwipeDistance * 4)
-#endif
+                Reset();
+                return;
+            }
+
+            if (IsPointerUp())
+            {
+                if (Time.time < _lastTapDownStartTime + _maxTimeBetweenTaps)
                 {
-                    _tapStartTime = 0;
+                    Reset();
+
                     OnDetected?.Invoke();
                 }
             }
+        }
 
-            if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Ended ||
-                Input.GetMouseButtonUp(0))
-            {
-                _tapStartTime = 0;
-                _drag = Vector2.zero;
-                _lastMousePos = Vector2.zero;
-            }
+        private void Reset()
+        {
+            _lastTapUpStartTime = 0;
+            _lastTapDownStartTime = 0;
+            _isDown = true;
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            _tapStartTime = DateTime.UtcNow.Ticks;
-            _lastMousePos = Input.mousePosition;
+            _isDown = true;
+            _lastTapDownStartTime = Time.time;
             _drag = Vector2.zero;
         }
     }

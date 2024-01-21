@@ -27,8 +27,6 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private TMP_Text _hpText;
         [SerializeField] private TMP_Text _attackText;
 
-        public SwipeTapHoldController CardButton;
-
         [SerializeField] private Image _aversBgImage;
         [SerializeField] private Image _reverseBgImage;
 
@@ -72,6 +70,24 @@ namespace CardRPG.UI.Gameplay
             //_attackText.text = card.Statistics.Attack.CalculatedValue.ToString();// + " AT";
 
             //_image.sprite = _cardImages.Sprites[card.ImageIndex];
+        }
+
+        public void OnTap(Action action) =>
+            GetComponentInChildren<TapDetector>().OnDetected = action;
+
+        public void RemoveTapHandlers() =>
+            GetComponentInChildren<TapDetector>().OnDetected = () => {};
+
+        public void OnSwipe(Action action) =>
+            GetComponentInChildren<SwipeDetector>().OnDetected = action;
+
+        public void RemoveSwipeHandlers() =>
+            GetComponentInChildren<SwipeDetector>().OnDetected = () => {};
+
+        public void RemoveAllHandlers()
+        {
+            RemoveTapHandlers();
+            RemoveSwipeHandlers();
         }
 
         public void SetDesc(string text) {}

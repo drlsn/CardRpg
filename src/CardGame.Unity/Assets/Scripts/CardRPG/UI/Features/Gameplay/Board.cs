@@ -1,4 +1,4 @@
-using CardRPG.Entities.Gameplay;
+using CardRPG.UI.GUICommands;
 using CardRPG.UI.Infrastructure;
 using CardRPG.UI.UseCases;
 using CardRPG.UseCases;
@@ -8,9 +8,11 @@ using Core.Functional;
 using Core.Unity;
 using Core.Unity.Math;
 using Core.Unity.Scripts;
+using Core.Unity.Transforms;
 using Core.Unity.UI;
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -20,17 +22,21 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private RectTransform _enemyBackRow;
         [SerializeField] private RectTransform _enemyHandRow;
         [SerializeField] private RectTransform _enemyBattleRow;
+        private Card _enemyHero;
 
         // Player
         [SerializeField] private RectTransform _playerBattleRow;
         [SerializeField] private RectTransform _playerHandRow;
         [SerializeField] private RectTransform _playerBackRow;
+        private Card _playerHero;
 
         [SerializeField] private RectTransform _middleRow;
 
         [SerializeField] private PlayerActionController _playerActionController;
 
         [SerializeField] private Card _cardPrefab;
+        [SerializeField] private Card _cardBigPrefab;
+        private Card _cardBig;
 
         private Card _myDeck;
         private Card _enemyDeck;
@@ -38,12 +44,29 @@ namespace CardRPG.UI.Gameplay
 
         private IGameplayService _gameplayService;
 
+        private RectTransform _rt;
+
+        [SerializeField] private Image _dialogTreeBg;
+        private DialogTree _dialogTree;
+
         public void Init(GetGameStateQueryOut dto)
         {
+            _rt = this.RT();
+
             _gameplayService = new OfflineGameplayService(StartCoroutine);
             _gameplayService.Subscribe<CardTakenToHandEvent>(On);
 
+            _dialogTree = new(_rt, _dialogTreeBg, StartCoroutine);
+
             Rebuild(dto);
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+                _dialogTree.Any()
+                    .IfTrueDo(_dialogTree.Back)
+                    .IfFalseDo(FindObjectOfType<GoToMenuGUICommand>().Execute);
         }
 
         private void On(CardTakenToHandEvent ev)
@@ -73,8 +96,17 @@ namespace CardRPG.UI.Gameplay
         private void SpawnHeroesAndDecks(Action onDone)
         {
             // Heroes
-            MoveInCard(_playerBackRow, isLeft: false, yOffset: 5).Turn(true);
-            MoveInCard(_enemyBackRow, isLeft: true, yOffset: -5).Turn(true);
+            _playerHero = MoveInCard(_playerBackRow, isLeft: false, yOffset: 5);
+            _enemyHero = MoveInCard(_enemyBackRow, isLeft: true, yOffset: -5);
+
+            _playerHero.Turn(true);
+            _playerHero.CardButton.OnTap(() => {
+                if (_dialogTree.Any())
+                    _dialogTree.Back();
+                else
+                    _dialogTree.ShowDialog(_cardBigPrefab.RT, _playerHero.RT.GetScreenCenterPos());
+            });
+            _enemyHero.Turn(true);
 
             // Decks
             _myDeck = MoveInCard(_playerBackRow, isLeft: true, yOffset: 5, onDone);

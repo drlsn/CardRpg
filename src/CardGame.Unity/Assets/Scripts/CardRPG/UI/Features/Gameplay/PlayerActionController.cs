@@ -56,9 +56,6 @@ namespace CardRPG.UI.Gameplay
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
-                GameObject.FindObjectOfType<GoToMenuGUICommand>().Execute();
-
             var screenSize = new Vector2(Screen.width, Screen.height);
             //if (Input.deviceOrientation != _orientation || _lastScreenSize != screenSize)
             //{

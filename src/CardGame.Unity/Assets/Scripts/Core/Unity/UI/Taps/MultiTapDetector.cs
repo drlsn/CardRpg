@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 namespace Core.Unity.UI.Taps
 {
-    public class MultiTapDetector : UnityScript, IPointerDownHandler, IPointerUpHandler
+    public class MultiTapDetector : InputDetector
     {
         [SerializeField] private float _lastTapTimeThreshold = 0.3f;
         [SerializeField] private float _maxTimeBetweenTaps = 0.25f;
@@ -20,6 +20,15 @@ namespace Core.Unity.UI.Taps
 
         private void Update()
         {
+            if (!Interactable)
+                return;
+
+            if (IsPointerDown())
+                OnPointerDown(null);
+
+            if (IsPointerUp())
+                OnPointerUp(null);
+
             if (_lastTapUpStartTime == 0)
                 return;
 

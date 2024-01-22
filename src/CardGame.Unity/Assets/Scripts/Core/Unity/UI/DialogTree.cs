@@ -16,7 +16,7 @@ namespace Core.Unity.UI
         private readonly Transform _view;
         private readonly Func<IEnumerator, Coroutine> _startCoroutine;
 
-        private readonly Image _dialogParentBg;
+        public Image DialogParentBg { get; }
 
         private readonly Stack<DialogInfo> _stack = new();
 
@@ -28,19 +28,22 @@ namespace Core.Unity.UI
             _view = view;
             _startCoroutine = startCoroutine;
 
-            _dialogParentBg = bgPrefab.Instantiate(view);
-            _dialogParentBg.transform.position = ScreenEx.Center;
-            _dialogParentBg.StretchToExtents();
-            _dialogParentBg.enabled = false;
-            _dialogParentBg.GetComponent<Button>().onClick
+            DialogParentBg = bgPrefab.Instantiate(view);
+            DialogParentBg.transform.position = ScreenEx.Center;
+            DialogParentBg.StretchToExtents();
+            DialogParentBg.enabled = false;
+            DialogParentBg.GetComponent<Button>().onClick
                 .AddListener(() => Back());
         }
 
-        public void ShowDialog(
-            RectTransform prefab,
+        public void ShowDialog<T>(
+            Func<RectTransform, T> create,
+            Action<RectTransform> destroy,
             Vector2? startPos = null)
+            where T : Component
         {
-            var dialog = prefab.Instantiate(_dialogParentBg.RT());
+            var dialog = create(DialogParentBg.RT());
+            var rt = dialog.GetComponent<RectTransform>();
 
             if (_stack.Count == 0)
                 _view
@@ -50,16 +53,17 @@ namespace Core.Unity.UI
             _stack.Push(new()
             {
                 InitialPos = startPos.HasValue ? startPos.Value : ScreenEx.Center,
-                Instance = dialog
+                Instance = rt,
+                Destroy = destroy
             });
 
-            dialog.position = startPos.HasValue ? startPos.Value : ScreenEx.Center;
-            dialog.localScale = Vector3.zero;
+            rt.position = startPos.HasValue ? startPos.Value : ScreenEx.Center;
+            rt.localScale = Vector3.zero;
             UILayoutRebuilder.Rebuild(dialog.gameObject);
 
-            LerpDialog(dialog, ScreenEx.Center, targetScale: 1, onDone: () =>
+            LerpDialog(rt, ScreenEx.Center, targetScale: 1, onDone: restore =>
             {
-                _dialogParentBg.enabled = true;
+                DialogParentBg.enabled = true;
             });
         }
 
@@ -70,11 +74,11 @@ namespace Core.Unity.UI
 
             var dialogInfo = _stack.Pop();
 
-            LerpDialog(dialogInfo.Instance, dialogInfo.InitialPos, targetScale: 0, onDone: () =>
+            LerpDialog(dialogInfo.Instance, dialogInfo.InitialPos, targetScale: 0, onDone: restore =>
             {
-                dialogInfo.Instance.Destroy();
-                _dialogParentBg.enabled = false;
-
+                dialogInfo.Destroy(dialogInfo.Instance);
+                DialogParentBg.enabled = false;
+                restore();
                 if (_stack.Count == 0)
                     _view
                         .GetComponentsInChildren<InputDetector>()
@@ -87,16 +91,16 @@ namespace Core.Unity.UI
             Vector2 targetPos, 
             float targetScale,
             float time = 0.3f,
-            Action onDone = null)
+            Action<Action> onDone = null)
         {
-            LerpFunctions.BeginLerp(rt, restore =>
+            LerpFunctions.BeginLerp(rt, sortingIndex: 20000, restore =>
             {
                 LerpFunctions.LerpPosition2D(
                    _startCoroutine,
                    rt,
                    targetPos,
                    time,
-                   onDone: restore.Then(onDone));
+                   onDone: () => onDone?.Invoke(restore));
 
                 LerpFunctions.LerpScale2D(
                    _startCoroutine,
@@ -112,7 +116,7 @@ namespace Core.Unity.UI
         {
             public Vector2 InitialPos { get; init; }
             public RectTransform Instance { get; init; }
-
+            public Action<RectTransform> Destroy { get; init; }
         }
     }
 }

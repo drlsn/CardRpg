@@ -50,6 +50,8 @@ namespace CardRPG.UI.Gameplay
         [SerializeField] private Image _dialogTreeBg;
         private DialogTree _dialogTree;
 
+        public static Card CardBigInstance { get; private set; }
+
         public void Init(GetGameStateQueryOut dto)
         {
             _rt = this.RT();
@@ -59,6 +61,10 @@ namespace CardRPG.UI.Gameplay
             _gameplayService.Subscribe<EnemyCardLaidToBattleEvent>(OnEnemyCardLaidToBattleEvent);
 
             _dialogTree = new(_rt, _dialogTreeBg, StartCoroutine);
+            CardBigInstance = _cardBigPrefab
+                .Instantiate(_dialogTree.DialogParentBg.RT())
+                .Get<Card>()
+                .Then(card => card.gameObject.SetActive(false));
 
             Rebuild(dto);
         }
@@ -250,6 +256,10 @@ namespace CardRPG.UI.Gameplay
     static class Extensions
     {
         public static void AddCardDetailsOnTapHandler(this Card card, RectTransform cardBigPrefab, DialogTree dialogTree) =>
-            card.OnTap(() => dialogTree.ShowDialog(cardBigPrefab, card.RT.GetScreenCenterPos()));
+            card.OnTap(() => dialogTree.ShowDialog(
+                create: parent => Board.CardBigInstance
+                    .Then(() => Board.CardBigInstance.gameObject.SetActive(true)),
+                destroy: cardRT => cardRT.gameObject.SetActive(false),
+                card.RT.GetScreenCenterPos()));
     }
 }

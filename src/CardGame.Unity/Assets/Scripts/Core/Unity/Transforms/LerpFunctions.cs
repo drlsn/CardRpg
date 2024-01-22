@@ -363,20 +363,27 @@ namespace Core.Unity.Transforms
         private static int _sortingIndex = 10;
         public static void BeginLerp(
             RectTransform rt,
-            Action<Action> lerpAction)
+            int sortingIndex,
+            Action<Action> lerpAction) 
         {
             var canvas = rt.GetOrAddComponent<Canvas>();
             canvas.overrideSorting = true;
-            canvas.sortingOrder = _sortingIndex;
-            _sortingIndex++;
+            canvas.sortingOrder = sortingIndex;
 
             var previousPivot = rt.pivot;
             rt.pivot = Vector2X.Half;
 
             lerpAction(() =>
-            {   
+            {
                 rt.gameObject.Remove<Canvas>();
             });
+        }
+
+        public static void BeginLerp(
+            RectTransform rt,
+            Action<Action> lerpAction)
+        {
+            BeginLerp(rt, ++_sortingIndex, lerpAction);
         }
 
         #endregion

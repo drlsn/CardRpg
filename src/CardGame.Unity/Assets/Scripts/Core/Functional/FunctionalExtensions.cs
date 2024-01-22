@@ -7,6 +7,28 @@ namespace Core.Functional
         public static T[] ToArray<T>(this T obj) =>
             new T[] { obj };
 
+        public static T IfNull<T>(this T value, Action action)
+            where T : class
+        {
+            if (value is not null)
+                return value;
+
+            action();
+
+            return value;
+        }
+
+        public static T IfNotNull<T>(this T value, Action<T> action)
+            where T : class
+        {
+            if (value is null)
+                return value;
+
+            action(value);
+
+            return value;
+        }
+
         public static bool IfTrueDo(this bool value, Action action) 
         {
             if (!value)

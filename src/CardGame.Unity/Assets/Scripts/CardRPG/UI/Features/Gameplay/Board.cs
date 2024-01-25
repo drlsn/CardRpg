@@ -12,6 +12,7 @@ using Core.Unity.Scripts;
 using Core.Unity.UI;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -52,7 +53,8 @@ namespace CardRPG.UI.Gameplay
 
         public static Card CardBigInstance { get; private set; }
 
-        public void Init(GetGameStateQueryOut dto)
+        private ServerStateService _serverStateService = new();
+        public async Task Init(GetGameStateQueryOut dto)
         {
             _rt = this.RT();
 
@@ -65,6 +67,9 @@ namespace CardRPG.UI.Gameplay
                 .Instantiate(_dialogTree.DialogParentBg.RT())
                 .Get<Card>()
                 .Then(card => card.gameObject.SetActive(false));
+
+            var isOnline = await _serverStateService.IsOnline();
+            isOnline.Log("IsOnline");
 
             Rebuild(dto);
         }

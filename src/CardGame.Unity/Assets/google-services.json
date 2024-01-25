@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "779512586139",
+    "project_id": "trinica-e1c54",
+    "storage_bucket": "trinica-e1c54.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:779512586139:android:cd92fad7d33b1d25decb3e",
+        "android_client_info": {
+          "package_name": "com.netspie.trinica"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "779512586139-vtobli949br2n7cmoj9q6j6hjiu7gl5b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDz4eKlHC8onnzWU5TzPSYYmhrlPkM6Abc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "779512586139-vtobli949br2n7cmoj9q6j6hjiu7gl5b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

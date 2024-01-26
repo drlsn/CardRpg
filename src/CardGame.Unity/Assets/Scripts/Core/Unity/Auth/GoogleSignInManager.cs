@@ -1,6 +1,11 @@
-﻿namespace Core.Unity.Auth
+﻿using UnityEngine;
+
+namespace Core.Unity.Auth
 {
-    public class GoogleSignInManager
+    public class GoogleSignInManager : MonoBehaviour
     {
+        public const string GoogleWebApi = "*.apps.googleusercontent.com";
+
+        //private GoogleSignInConfiguration configuration;
     }
 }

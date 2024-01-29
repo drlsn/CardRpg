@@ -5,8 +5,9 @@
         public static Result Success() => new Result(true);
         public static Result Success(object value) => new Result(true, value);
         public static Result Failure() => new Result(false);
+        public static Result Failure(string message) => new Result(false, message: message);
 
-        public Result(bool isSuccess, object value = null)
+        protected Result(bool isSuccess, object value = null, string message = null)
         {
             IsSuccess = isSuccess;
             ValueObject = value;
@@ -14,6 +15,7 @@
 
         public bool IsSuccess { get; protected set; }
         public object ValueObject { get; protected set; }
+        public string Message { get; protected set; }
 
         public static implicit operator Result(bool isSuccess) => new Result(isSuccess);
 

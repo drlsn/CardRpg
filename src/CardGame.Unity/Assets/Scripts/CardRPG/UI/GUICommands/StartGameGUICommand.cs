@@ -18,7 +18,7 @@ namespace CardRPG.UI.GUICommands
             _boardIO.Instantiate();
             var board = _boardIO.PrefabData.Object.GetComponent<Board>();
 
-            board.Init(dto);
+            await board.Init(dto);
         }
     }
 }

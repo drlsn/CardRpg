@@ -99,7 +99,7 @@ namespace CardRPG.UI.Gameplay
         {
             var steps = new ActionStepController();
 
-            steps += Wait(0.5f);
+            //steps += Wait(0.5f);
             steps += SpawnHeroesAndDecks;
             steps += Show("Mixing Cards");
             steps += AnimateMixingCards;

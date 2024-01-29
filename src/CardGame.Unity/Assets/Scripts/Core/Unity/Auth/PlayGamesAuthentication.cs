@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Core.Unity.Auth
 {
-    public class PlayGamesAuthentication
+    public class PlayGamesAuthentication : IAuthentication
     {
         private const string TokenKey = "token";
 

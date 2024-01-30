@@ -1,4 +1,5 @@
-﻿using Core.Basic;
+﻿using Core.Auth;
+using Core.Basic;
 using Core.Security;
 using Core.Unity.Storage;
 using GooglePlayGames;
@@ -18,22 +19,26 @@ namespace Core.Unity.Auth
 
         public string UserId => _userData.Id;
         public string UserName => _userData.Name;
+        public string AuthCode => _userData.AuthCode;
 
-        public async Task<string> GetToken()
+        public async Task<string> GetAuthCode()
         {
-            var token = _userData?.Token;
-            if (token is not null)
+            if (_userData?.AuthCode is not null)
             {
-                token = SecurePlayerPrefs.GetString(TokenKey);
-                if (!Jwt.ValidateAndDecodeToken(token))
-                    await SignIn();
+                if (Jwt.ValidateAndDecodeToken(_userData.AuthCode))
+                    return _userData.AuthCode;
 
-                return _userData.Token;
+                var token = SecurePlayerPrefs.GetString(TokenKey);
+                if (Jwt.ValidateAndDecodeToken(token))
+                {
+                    _userData = _userData with { AuthCode = token };
+                    return _userData.AuthCode;
+                }
             }
             
             await SignIn();
 
-            return _userData.Token;
+            return _userData.AuthCode;
         }
 
         public Task<Result> SignIn()
@@ -42,6 +47,7 @@ namespace Core.Unity.Auth
                 return _signInCompletionSource.Task;
 
             _isSignInInProgress = true;
+            _signInCompletionSource = new();
 
             PlayGamesPlatform.Activate();
             PlayGamesPlatform.Instance.Authenticate(signInStatus =>
@@ -75,21 +81,21 @@ namespace Core.Unity.Auth
         private void HandleSignInSuccess(UserData userData)
         {
             _isSignInInProgress = false;
-            _signInCompletionSource.SetResult(Result.Success());
+            _signInCompletionSource?.SetResult(Result.Success());
             
             _userData = userData;
 
-            SecurePlayerPrefs.SetString(TokenKey, _userData.Token);
+            SecurePlayerPrefs.SetString(TokenKey, _userData.AuthCode);
         }
 
         private void HandleSignInError(string error)
         {
             _isSignInInProgress = false;
-            _signInCompletionSource.SetResult(Result.Failure(error));
+            _signInCompletionSource?.SetResult(Result.Failure(error));
 
             SecurePlayerPrefs.DeleteKey(TokenKey);
         }
     }
 
-    public record UserData(string Id, string Name, string Token);
+    public record UserData(string Id, string Name, string AuthCode);
 }

@@ -1,14 +1,15 @@
 ﻿using Core.Basic;
 using System.Threading.Tasks;
 
-namespace Core.Unity.Auth
+namespace Core.Auth
 {
     public interface IAuthentication
     {
-        Task<string> GetToken();
+        Task<string> GetAuthCode();
         Task<Result> SignIn();
 
         string UserId { get; }
         string UserName { get; }
+        string AuthCode { get; }
     }
 }

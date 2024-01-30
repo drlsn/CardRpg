@@ -47,7 +47,7 @@ namespace CardRPG.UI.Features.Gameplay
                 _rt,
                 new Vector2(_rt.position.x, _rt.position.y + 50),
                 0.5f,
-                onDone: () => _isShown.IfTrueDo(MoveDown));
+                onDone: () => _isShown.IfTrue(MoveDown));
         }
 
         private void MoveDown()
@@ -58,7 +58,7 @@ namespace CardRPG.UI.Features.Gameplay
                 _rt,
                 new Vector2(_rt.position.x, _rt.position.y - 50),
                 0.5f,
-                onDone: () => _isShown.IfTrueDo(MoveUp));
+                onDone: () => _isShown.IfTrue(MoveUp));
         }
     }
 }

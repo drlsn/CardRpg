@@ -29,7 +29,7 @@ namespace Core.Functional
             return value;
         }
 
-        public static bool IfTrueDo(this bool value, Action action) 
+        public static bool IfTrue(this bool value, Action action) 
         {
             if (!value)
                 return value;
@@ -39,7 +39,7 @@ namespace Core.Functional
             return value;
         }
 
-        public static bool IfFalseDo(this bool value, Action action)
+        public static bool IfFalse(this bool value, Action action)
         {
             if (value)
                 return value;

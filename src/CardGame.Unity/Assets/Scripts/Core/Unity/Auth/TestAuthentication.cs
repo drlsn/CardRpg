@@ -1,22 +1,29 @@
-﻿using Core.Basic;
+﻿using Core.Auth;
+using Core.Basic;
+using System;
 using System.Threading.Tasks;
 
 namespace Core.Unity.Auth
 {
-    internal class TestAuthentication : IAuthentication
+    public class TestAuthentication : IAuthentication
     {
         public string UserId => "test-user-id";
-
         public string UserName => "test-user";
+        public string AuthCode => "test-token";
 
-        public Task<string> GetToken()
+        public async Task<string> GetAuthCode()
         {
-            throw new System.NotImplementedException();
+            return "the-token";
         }
 
-        public Task<Result> SignIn()
+        public void SignIn(Action<Result> onDone)
         {
-            throw new System.NotImplementedException();
+            onDone?.Invoke(Result.Success());
+        }
+
+        public async Task<Result> SignIn()
+        {
+            return Result.Success();
         }
     }
 }

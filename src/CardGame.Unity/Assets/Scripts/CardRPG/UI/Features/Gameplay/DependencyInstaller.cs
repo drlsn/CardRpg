@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Core.Auth;
+using Core.Net.Http;
+using Core.Unity.Auth;
 using Zenject;
 
 namespace CardRPG.UI.Features.Gameplay
@@ -7,18 +9,18 @@ namespace CardRPG.UI.Features.Gameplay
     {
         public override void InstallBindings()
         {
-            Container.Bind<string>().FromInstance("Hello World!");
-            Container.Bind<Greeter>().AsSingle().NonLazy();
+            IAuthentication authentication = null;
+#if UNITY_EDITOR || UNITY_STANDALONE
+            authentication = new TestAuthentication();
+#else
+            authentication = new PlayGamesAuthentication();
+#endif
+            Container.Bind<IAuthentication>().FromInstance(authentication).AsSingle();
 
-            Debug.Log("Install Bindings");
-        }
-
-        public class Greeter
-        {
-            public Greeter(string message)
-            {
-                Debug.Log(message);
-            }
+            var httpClientManager = new HttpClientManager();
+            httpClientManager.CreateClient("public");
+            httpClientManager.CreateClient("trinica-authorized", "localhost:5166", new AuthorizationMessageHandler(authentication));
+            Container.Bind<IHttpClientAccessor>().FromInstance(httpClientManager).AsSingle();
         }
     }
 }

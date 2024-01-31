@@ -25,7 +25,7 @@ namespace Core.Auth
         {
             if (_token == null || !Jwt.ValidateAndDecodeToken(_token))
             {
-                _token = await _authentication.GetAuthCode();
+                _token = await _authentication.GetAccessToken();
                 if (_token.IsNullOrEmpty())
                     throw new Exception("Authorization token couldn't be obtained.");
 

@@ -5,11 +5,10 @@ namespace Core.Auth
 {
     public interface IAuthentication
     {
-        Task<string> GetAuthCode();
+        Task<string> GetAccessToken();
         Task<Result> SignIn();
 
         string UserId { get; }
         string UserName { get; }
-        string AuthCode { get; }
     }
 }

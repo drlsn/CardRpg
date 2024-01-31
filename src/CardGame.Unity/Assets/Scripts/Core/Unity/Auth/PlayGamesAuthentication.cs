@@ -1,44 +1,88 @@
 ﻿using Core.Auth;
 using Core.Basic;
+using Core.Net.Http;
 using Core.Security;
 using Core.Unity.Storage;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
+using Newtonsoft.Json;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Core.Unity.Auth
 {
     public class PlayGamesAuthentication : IAuthentication
     {
-        private const string TokenKey = "token";
+        private const string AccessTokenKey = "access-token";
 
-        private UserData _userData;
+        private IHttpClientAccessor _clientAccessor { get; set; }
+        private readonly string _tokenUri;
 
         private TaskCompletionSource<Result> _signInCompletionSource;
         private bool _isSignInInProgress = false;
 
-        public string UserId => _userData.Id;
-        public string UserName => _userData.Name;
-        public string AuthCode => _userData.AuthCode;
+        public string UserId => PlayGamesPlatform.Instance.GetUserId();
+        public string UserName => PlayGamesPlatform.Instance.GetUserDisplayName();
 
-        public async Task<string> GetAuthCode()
+        private string _authCode;
+        private string _accessToken;
+
+        public PlayGamesAuthentication(string tokenUri, IHttpClientAccessor clientAccessor)
         {
-            if (_userData?.AuthCode is not null)
-            {
-                if (Jwt.ValidateAndDecodeToken(_userData.AuthCode))
-                    return _userData.AuthCode;
+            _tokenUri = tokenUri;
+            _clientAccessor = clientAccessor;
+        }
 
-                var token = SecurePlayerPrefs.GetString(TokenKey);
-                if (Jwt.ValidateAndDecodeToken(token))
-                {
-                    _userData = _userData with { AuthCode = token };
-                    return _userData.AuthCode;
-                }
-            }
-            
+        static async Task<HttpResponseMessage> PostJsonAsync(IHttpClientAccessor clientAccessor, string apiUrl, string jsonBody)
+        {
+            var client = clientAccessor.Get("trinica-public");
+            var address = client.BaseAddress + apiUrl;
+            return await client.PostAsync(apiUrl, new StringContent(jsonBody, Encoding.UTF8, "application/json"));
+        }
+
+        class TokenPostResponse
+        {
+            public string AccessToken { get; init; }
+        }
+
+        public async Task<string> GetAccessToken()
+        {
+            if (_accessToken is not null && Jwt.ValidateAndDecodeToken(_accessToken))
+                return _accessToken;
+
+            var storedToken = SecurePlayerPrefs.GetString(AccessTokenKey);
+            if (Jwt.ValidateAndDecodeToken(storedToken))
+                return _accessToken = storedToken;
+
             await SignIn();
 
-            return _userData.AuthCode;
+            _accessToken = await RetrieveAccessTokenFromServer();
+            if (_accessToken is not null)
+                SecurePlayerPrefs.SetString(AccessTokenKey, _accessToken);
+
+            return _accessToken;
+        }
+
+        private async Task<string> RetrieveAccessTokenFromServer()
+        {
+            try
+            {
+                var requestBody = new { Code = _authCode };
+                var jsonBody = JsonConvert.SerializeObject(requestBody);
+                var response = await PostJsonAsync(_clientAccessor, _tokenUri, jsonBody);
+                response.EnsureSuccessStatusCode();
+
+                var jsonResult = await response.Content.ReadAsStringAsync();
+                var tokenResponse = JsonConvert.DeserializeObject<TokenPostResponse>(jsonResult);
+
+                return tokenResponse.AccessToken;
+            }
+            catch (HttpRequestException ex)
+            {
+                SecurePlayerPrefs.DeleteKey(AccessTokenKey);
+                return null;
+            }
         }
 
         public Task<Result> SignIn()
@@ -58,44 +102,30 @@ namespace Core.Unity.Auth
                     return;
                 }
 
-                PlayGamesPlatform.Instance.RequestServerSideAccess(forceRefreshToken: false, token =>
+                PlayGamesPlatform.Instance.RequestServerSideAccess(forceRefreshToken: false, authCode =>
                 {
-                    if (token is null)
+                    if (authCode is null)
                     {
                         HandleSignInError("Sign In Failed");
                         return;
                     }
 
-                    var userData = new UserData(
-                        PlayGamesPlatform.Instance.GetUserId(),
-                        PlayGamesPlatform.Instance.GetUserDisplayName(),
-                        token);
+                    _isSignInInProgress = false;
+                    _signInCompletionSource?.SetResult(Result.Success());
 
-                    HandleSignInSuccess(userData);
+                    _authCode = authCode;
                 });
             });
 
             return _signInCompletionSource.Task;
         }
 
-        private void HandleSignInSuccess(UserData userData)
-        {
-            _isSignInInProgress = false;
-            _signInCompletionSource?.SetResult(Result.Success());
-            
-            _userData = userData;
-
-            SecurePlayerPrefs.SetString(TokenKey, _userData.AuthCode);
-        }
-
         private void HandleSignInError(string error)
         {
             _isSignInInProgress = false;
             _signInCompletionSource?.SetResult(Result.Failure(error));
-
-            SecurePlayerPrefs.DeleteKey(TokenKey);
         }
     }
 
-    public record UserData(string Id, string Name, string AuthCode);
+    public record UserData(string Id, string Name, string AuthCode, string AccessToken = null);
 }

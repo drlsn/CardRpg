@@ -9,17 +9,21 @@ namespace CardRPG.UI.Features.Gameplay
     {
         public override void InstallBindings()
         {
+            var httpClientManager = new HttpClientManager();
+            
             IAuthentication authentication = null;
 #if UNITY_EDITOR || UNITY_STANDALONE
             authentication = new TestAuthentication();
 #else
-            authentication = new PlayGamesAuthentication();
+            authentication = new PlayGamesAuthentication("api/v1/token", httpClientManager);
 #endif
             Container.Bind<IAuthentication>().FromInstance(authentication).AsSingle();
 
-            var httpClientManager = new HttpClientManager();
+            var baseAddress = "http://192.168.178.35:5166";
+            //var baseAddress = "localhost:5166";
             httpClientManager.CreateClient("public");
-            httpClientManager.CreateClient("trinica-authorized", "localhost:5166", new AuthorizationMessageHandler(authentication));
+            httpClientManager.CreateClient("trinica-public", baseAddress);
+            httpClientManager.CreateClient("trinica-authorized", baseAddress, new AuthorizationMessageHandler(authentication));
             Container.Bind<IHttpClientAccessor>().FromInstance(httpClientManager).AsSingle();
         }
     }

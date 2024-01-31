@@ -11,7 +11,7 @@ namespace Core.Unity.Auth
         public string UserName => "test-user";
         public string AuthCode => "test-token";
 
-        public async Task<string> GetAuthCode()
+        public async Task<string> GetAccessToken()
         {
             return "the-token";
         }

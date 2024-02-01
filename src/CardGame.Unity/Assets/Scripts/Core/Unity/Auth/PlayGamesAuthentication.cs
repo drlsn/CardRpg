@@ -52,7 +52,6 @@ namespace Core.Unity.Auth
             if (result.Error is not null || result.Body is null)
                 return null;
 
-            ((PlayGamesLocalUser)PlayGamesPlatform.Instance.localUser).GetIdToken();
 
             _accessToken = result.Body.AccessToken;
             if (_accessToken is not null)

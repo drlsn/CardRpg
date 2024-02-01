@@ -18,7 +18,6 @@ namespace CardRPG.UI.Features.LoadingScreen
 
         public async void Load()
         {
-            await _authentication.SignIn();
             var accessToken = await _authentication.GetAccessToken();
             accessToken.IfNotNull(t =>
                 _text.text = $"Token {accessToken.Take(10).ToStr()}");

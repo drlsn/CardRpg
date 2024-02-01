@@ -3,11 +3,9 @@ using Core.Basic;
 using Core.Net.Http;
 using Core.Security;
 using Core.Unity.Storage;
+using Corelibs.BlazorShared;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
-using Newtonsoft.Json;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Core.Unity.Auth
@@ -16,8 +14,9 @@ namespace Core.Unity.Auth
     {
         private const string AccessTokenKey = "access-token";
 
-        private IHttpClientAccessor _clientAccessor { get; set; }
+        private readonly IHttpClientAccessor _clientAccessor;
         private readonly string _tokenUri;
+        private readonly string _clientName;
 
         private TaskCompletionSource<Result> _signInCompletionSource;
         private bool _isSignInInProgress = false;
@@ -28,22 +27,12 @@ namespace Core.Unity.Auth
         private string _authCode;
         private string _accessToken;
 
-        public PlayGamesAuthentication(string tokenUri, IHttpClientAccessor clientAccessor)
+        public PlayGamesAuthentication(
+            string tokenUri, IHttpClientAccessor clientAccessor, string clientName)
         {
             _tokenUri = tokenUri;
             _clientAccessor = clientAccessor;
-        }
-
-        static async Task<HttpResponseMessage> PostJsonAsync(IHttpClientAccessor clientAccessor, string apiUrl, string jsonBody)
-        {
-            var client = clientAccessor.Get("trinica-public");
-            var address = client.BaseAddress + apiUrl;
-            return await client.PostAsync(apiUrl, new StringContent(jsonBody, Encoding.UTF8, "application/json"));
-        }
-
-        class TokenPostResponse
-        {
-            public string AccessToken { get; init; }
+            _clientName = clientName;
         }
 
         public async Task<string> GetAccessToken()
@@ -57,32 +46,19 @@ namespace Core.Unity.Auth
 
             await SignIn();
 
-            _accessToken = await RetrieveAccessTokenFromServer();
+            var result = await _clientAccessor.PostResource<TokenPostRequest, TokenPostResponse, TokenPostResponse>(
+                _clientName, _tokenUri, new(_authCode));
+
+            if (result.Error is not null || result.Body is null)
+                return null;
+
+            ((PlayGamesLocalUser)PlayGamesPlatform.Instance.localUser).GetIdToken();
+
+            _accessToken = result.Body.AccessToken;
             if (_accessToken is not null)
                 SecurePlayerPrefs.SetString(AccessTokenKey, _accessToken);
 
             return _accessToken;
-        }
-
-        private async Task<string> RetrieveAccessTokenFromServer()
-        {
-            try
-            {
-                var requestBody = new { Code = _authCode };
-                var jsonBody = JsonConvert.SerializeObject(requestBody);
-                var response = await PostJsonAsync(_clientAccessor, _tokenUri, jsonBody);
-                response.EnsureSuccessStatusCode();
-
-                var jsonResult = await response.Content.ReadAsStringAsync();
-                var tokenResponse = JsonConvert.DeserializeObject<TokenPostResponse>(jsonResult);
-
-                return tokenResponse.AccessToken;
-            }
-            catch (HttpRequestException ex)
-            {
-                SecurePlayerPrefs.DeleteKey(AccessTokenKey);
-                return null;
-            }
         }
 
         public Task<Result> SignIn()
@@ -127,5 +103,6 @@ namespace Core.Unity.Auth
         }
     }
 
-    public record UserData(string Id, string Name, string AuthCode, string AccessToken = null);
+    record TokenPostRequest(string Code);
+    record TokenPostResponse(string AccessToken);
 }

@@ -15,7 +15,7 @@ namespace CardRPG.UI.Features.Gameplay
 #if UNITY_EDITOR || UNITY_STANDALONE
             authentication = new TestAuthentication();
 #else
-            authentication = new PlayGamesAuthentication("api/v1/token", httpClientManager);
+            authentication = new PlayGamesAuthentication("api/v1/token", httpClientManager, "trinica-public");
 #endif
             Container.Bind<IAuthentication>().FromInstance(authentication).AsSingle();
 

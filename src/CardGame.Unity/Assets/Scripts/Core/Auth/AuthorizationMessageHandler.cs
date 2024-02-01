@@ -1,6 +1,6 @@
 ﻿using Core.Collections;
 using Core.Security;
-using System;
+using Corelibs.Basic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -27,7 +27,7 @@ namespace Core.Auth
             {
                 _token = await _authentication.GetAccessToken();
                 if (_token.IsNullOrEmpty())
-                    throw new Exception("Authorization token couldn't be obtained.");
+                    throw new NoAccessTokenAvailableException("Authorization token couldn't be obtained.");
 
                 _cachedHeader = new AuthenticationHeaderValue("Bearer", _token);
             }

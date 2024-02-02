@@ -264,17 +264,17 @@ __pycache__/
 #
 # Get latest from https://github.com/github/gitignore/blob/master/Unity.gitignore
 #
-src/CardGame.Unity/[Ll]ibrary/
-src/CardGame.Unity/[Tt]emp/
-src/CardGame.Unity/[Oo]bj/
-src/CardGame.Unity/[Bb]uild/
-src/CardGame.Unity/[Bb]uilds/
-src/CardGame.Unity/[Ll]ogs/
-src/CardGame.Unity/[Mm]emoryCaptures/
+src/[Ll]ibrary/
+src/[Tt]emp/
+src/[Oo]bj/
+src/[Bb]uild/
+src/[Bb]uilds/
+src/[Ll]ogs/
+src/[Mm]emoryCaptures/
 
 # Never ignore Asset meta data
-!/src/CardGame.Unity/[Aa]ssets/**/*.meta
-!/src/CardGame.Unity/[Pp]ackages/**
+!/src/[Aa]ssets/**/*.meta
+!/src/[Pp]ackages/**
 
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*

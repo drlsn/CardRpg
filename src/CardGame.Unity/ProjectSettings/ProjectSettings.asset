@@ -255,8 +255,8 @@ PlayerSettings:
   AndroidTargetDevices: 0
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: C:/Users/dariu/OneDrive/Dysk/Programming/Projects/Games/Trinica/trinica-playstore.keystore
-  AndroidKeyaliasName: trinica-playstore
+  AndroidKeystoreName: C:/Users/dariu/OneDrive/Dysk/Programming/Projects/Games/Trinica/trinica.dev.keystore
+  AndroidKeyaliasName: trinica.dev
   AndroidEnableArmv9SecurityFeatures: 0
   AndroidBuildApkPerCpuArchitecture: 0
   AndroidTVCompatibility: 0

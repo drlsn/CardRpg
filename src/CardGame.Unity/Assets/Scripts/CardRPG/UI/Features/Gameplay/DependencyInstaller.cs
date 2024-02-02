@@ -13,8 +13,8 @@ namespace CardRPG.UI.Features.Gameplay
             
             IAuthentication authentication = null;
 #if UNITY_EDITOR || UNITY_STANDALONE
-            authentication = new TestAuthentication();
-#else
+            authentication = new FirebaseEmailAuthentication();
+#elif UNITY_ANDROID
             authentication = new PlayGamesAuthentication("api/v1/token", httpClientManager, "trinica-public");
 #endif
             Container.Bind<IAuthentication>().FromInstance(authentication).AsSingle();

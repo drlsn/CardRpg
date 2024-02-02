@@ -1,5 +1,6 @@
 ﻿using Core.Auth;
 using Core.Basic;
+using Core.Collections;
 using Core.Security;
 using Core.Unity.Storage;
 using Firebase;
@@ -20,7 +21,7 @@ namespace Core.Unity.Auth
 
         private TaskCompletionSource<Result> _signInCompletionSource;
         private bool _isSignInInProgress = false;
-         
+             
         public string UserId => PlayGamesPlatform.Instance.GetUserId();
         public string UserName => PlayGamesPlatform.Instance.GetUserDisplayName();
 
@@ -35,7 +36,7 @@ namespace Core.Unity.Auth
                 return _accessToken;
 
             _accessToken = SecurePlayerPrefs.GetString(AccessTokenKey);
-            if (_accessToken is not null && Jwt.ValidateAndDecodeToken(_accessToken))
+            if (!_accessToken.IsNullOrEmpty() && Jwt.ValidateAndDecodeToken(_accessToken))
                 return _accessToken;
 
             await SignIn();

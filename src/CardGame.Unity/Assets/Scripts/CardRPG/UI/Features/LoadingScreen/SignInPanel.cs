@@ -1,6 +1,8 @@
 ﻿using Core.Auth;
 using Core.Collections;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Zenject;
 
 namespace CardRPG.UI.Features.LoadingScreen
@@ -9,6 +11,7 @@ namespace CardRPG.UI.Features.LoadingScreen
     {
         [SerializeField] private EmailSignInPanel EmailSignInPanel;
         [SerializeField] private GameObject IdpSignInPanel;
+        [SerializeField] private TMP_Text _msgText;
 
         [Inject] private IAuthentication _authentication;
 
@@ -20,6 +23,15 @@ namespace CardRPG.UI.Features.LoadingScreen
                 EmailSignInPanel.gameObject.SetActive(false);
                 IdpSignInPanel.SetActive(false);
 
+                var result = await _authentication.SignIn();
+                if (result.IsSuccess)
+                {
+                    _msgText.text = "Sign In Success";
+                    SceneManager.LoadScene("Menu");
+                }
+                else
+                    _msgText.text = result.Message;
+
                 return;
             }
 
@@ -27,7 +39,7 @@ namespace CardRPG.UI.Features.LoadingScreen
             EmailSignInPanel.gameObject.SetActive(true);
             IdpSignInPanel.SetActive(false);
 #elif UNITY_ANDROID
-            EmailSignInPanel.SetActive(false);
+            EmailSignInPanel.gameObject.SetActive(false);
             IdpSignInPanel.SetActive(true);
 #endif
         }

@@ -1,15 +1,15 @@
 ﻿using Core.Auth;
 using Core.Basic;
 using Core.Collections;
+using Core.Net.Http;
 using Core.Security;
 using Core.Unity.Storage;
-using Firebase;
 using Firebase.Auth;
 using GooglePlayGames;
 using System;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace Core.Unity.Auth
 {
@@ -17,21 +17,22 @@ namespace Core.Unity.Auth
     {
         private const string AccessTokenKey = "access-token";
 
-        private AuthResult _authResult;
-
-        private TaskCompletionSource<Result> _signInCompletionSource;
-        private bool _isSignInInProgress = false;
-        
         public string UserId => PlayGamesPlatform.Instance.GetUserId();
         public string UserName => PlayGamesPlatform.Instance.GetUserDisplayName();
 
-        private string _authCode;
         private string _accessToken;
-
-        private bool _firebaseInitialized;
 
         public string Email { set; get; }
         public string Password { set; get; }
+
+        private readonly HttpClient _client;
+        private readonly string _apiKey;
+
+        public FirebaseEmailAuthentication(HttpClient client, string apiKey)
+        {
+            _client = client;
+            _apiKey = apiKey;
+        }
 
         public async Task<string> GetAccessToken()
         {
@@ -54,60 +55,60 @@ namespace Core.Unity.Auth
             return _accessToken;
         }
 
-        private async void OnFirebaseAuthChanged(object sender, EventArgs args)
-        {
-            var credential = PlayGamesAuthProvider.GetCredential(_authCode);
-            _authResult = await FirebaseAuth.DefaultInstance.SignInAndRetrieveDataWithCredentialAsync(credential);
-            _accessToken = await FirebaseAuth.DefaultInstance.CurrentUser.TokenAsync(forceRefresh: true);
-            if (_accessToken is not null)
-                SecurePlayerPrefs.SetString(AccessTokenKey, _accessToken);
-        }
         static bool IsValidEmail(string email) =>
             Regex.IsMatch(email, @"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$");
 
         private bool IsNotValidCredentials() =>
             Email.IsNullOrEmpty() || !IsValidEmail(Email) || Password.IsNullOrEmpty() || Password.Length < 6;
 
-        public Task<Result> SignIn()
+        public async Task<Result> SignIn()
         {
+            if (!_accessToken.IsNullOrEmpty() && Jwt.ValidateAndDecodeToken(_accessToken))
+                return Result.Success();
+
             if (IsNotValidCredentials())
-                return Task.FromResult(Result.Failure("Invalid credentials"));
+                return Result.Failure("Invalid credentials");
 
-            if (_isSignInInProgress)
-                return _signInCompletionSource.Task;
+            try {
+                var signInResult = await _client.PostAsJsonExpectError<SignInRequest, SignInResponse, SignInResponseErrorDetails>(
+                    resourcePath: $"/v1/accounts:signInWithPassword?key={_apiKey}",
+                    body: new(Email, Password),
+                    ct: default);
 
-            _isSignInInProgress = true;
-            _signInCompletionSource = new();
+                if (!signInResult.Error.Errors.IsNullOrEmpty())
+                    return Result.Failure(signInResult.Error.Message);
 
-            if (!_firebaseInitialized)
-                FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
-                {
-                    FirebaseAuth.DefaultInstance.StateChanged += (sender, args) =>
-                    {
-                        FirebaseAuth.DefaultInstance.SignInWithEmailAndPasswordAsync(Email, Password).ContinueWith(task =>
-                        {
-                            _authResult = task.Result;
-                            Debug.LogFormat("User signed in successfully: {0} ({1})",
-                                _authResult.User.DisplayName, _authResult.User.UserId);
+                if (!signInResult.Response.StatusCode.IsSuccess())
+                    return Result.Failure("Could not sign in");
 
-                            _isSignInInProgress = false;
-                            _signInCompletionSource?.SetResult(Result.Success());
-                        });
-                    };
-                });
-            else
+                _accessToken = signInResult.Body.IdToken;
+                if (_accessToken.IsNullOrEmpty())
+                    return Result.Failure("Id token is empty");
+
+                SecurePlayerPrefs.SetString(AccessTokenKey, _accessToken);
+            }
+            catch (Exception ex)
             {
-                _isSignInInProgress = false;
-                _signInCompletionSource?.SetResult(Result.Success());
+                return Result.Failure(ex.Message);
             }
 
-            return _signInCompletionSource.Task;
+            return Result.Success();
         }
 
-        private void HandleSignInError(string error)
-        {
-            _isSignInInProgress = false;
-            _signInCompletionSource?.SetResult(Result.Failure(error));
-        }
+        record SignInRequest(string email, string password, bool returnSecureToken = true);
+        record SignInResponse(
+            string Kind,
+            string LocalId,
+            string Email,
+            string DisplayName,
+            string IdToken,
+            bool Registered,
+            string RefreshToken,
+            int ExpiresIn
+        );
+
+        public record SignInResponseErrorDetails(int Code, string Message, SignInResponseError[] Errors);
+
+        public record SignInResponseError(string Message, string Domain, string Reason);
     }
 }

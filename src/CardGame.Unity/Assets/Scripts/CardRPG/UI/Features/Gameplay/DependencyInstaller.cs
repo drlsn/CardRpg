@@ -1,6 +1,7 @@
 ﻿using Core.Auth;
 using Core.Net.Http;
 using Core.Unity.Auth;
+using System;
 using Zenject;
 
 namespace CardRPG.UI.Features.Gameplay
@@ -13,9 +14,10 @@ namespace CardRPG.UI.Features.Gameplay
             
             IAuthentication authentication = null;
 #if UNITY_EDITOR || UNITY_STANDALONE
-            authentication = new FirebaseEmailAuthentication();
+            authentication = new FirebaseEmailAuthentication(
+                new() { BaseAddress = new Uri("https://identitytoolkit.googleapis.com") }, apiKey: "AIzaSyDz4eKlHC8onnzWU5TzPSYYmhrlPkM6Abc");
 #elif UNITY_ANDROID
-            authentication = new PlayGamesAuthentication("api/v1/token", httpClientManager, "trinica-public");
+            authentication = new FirebasePlayGamesAuthentication();
 #endif
             Container.Bind<IAuthentication>().FromInstance(authentication).AsSingle();
 

@@ -2,6 +2,7 @@
 using Core.Unity.Auth;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Zenject;
 
@@ -12,6 +13,7 @@ namespace CardRPG.UI.Features.LoadingScreen
         [SerializeField] private TMP_InputField _emailInput;
         [SerializeField] private TMP_InputField _password;
         [SerializeField] private Button _signInButton;
+        [SerializeField] private TMP_Text _msgText;
 
         [Inject] private IAuthentication _authentication;
 
@@ -23,7 +25,14 @@ namespace CardRPG.UI.Features.LoadingScreen
                 emailAuth.Email = _emailInput.text;
                 emailAuth.Password = _password.text;
 
-                await _authentication.SignIn();
+                var result = await _authentication.SignIn();
+                if (result.IsSuccess)
+                {
+                    _msgText.text = "Sign In Success";
+                    SceneManager.LoadScene("Menu");
+                }
+                else
+                    _msgText.text = result.Message;
             });
         }
     }

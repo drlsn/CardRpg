@@ -73,7 +73,21 @@ namespace Corelibs.BlazorShared
                 clientName => clientAccessor.PostAsync(clientName, resourcePath, body, ct));
         }
 
-        public static Task<JsonResponse<TResponse, TResponseError>> PostResource<TBody, TResponse, TResponseError>(
+        public static Task<JsonResponse<TResponse>> PostResource<TBody, TResponse>(
+            this IHttpClientAccessor clientAccessor,
+            string authorizedClientName,
+            string anonymousClientName,
+            string resourcePath,
+            TBody body,
+            CancellationToken ct = default)
+        {
+            return SendResource(
+                authorizedClientName,
+                anonymousClientName,
+                clientName => clientAccessor.PostAsync<TBody, TResponse>(clientName, resourcePath, body, ct));
+        }
+
+        public static Task<JsonResponseOrError<TResponse, TResponseError>> PostResource<TBody, TResponse, TResponseError>(
             this IHttpClientAccessor clientAccessor,
             string authorizedClientName,
             string anonymousClientName,
@@ -87,7 +101,7 @@ namespace Corelibs.BlazorShared
                 clientName => clientAccessor.PostAsync<TBody, TResponse, TResponseError>(clientName, resourcePath, body, ct));
         }
 
-        public static Task<JsonResponse<TResponse, TResponseError>> PostResource<TBody, TResponse, TResponseError>(
+        public static Task<JsonResponseOrError<TResponse, TResponseError>> PostResource<TBody, TResponse, TResponseError>(
             this IHttpClientAccessor clientAccessor,
             string clientName,
             string resourcePath,
@@ -167,14 +181,21 @@ namespace Corelibs.BlazorShared
             this IHttpClientAccessor clientAccessor, string clientName, string resourcePath, TBody body, CancellationToken ct)
         {
             return clientAccessor.CreateClientAndSendRequest(
-                clientName, client => HttpClientJsonExtensions.PostAsJsonAsync(client, resourcePath, body, ct));
+                clientName, client => HttpClientJsonExtensions.PostAsJson(client, resourcePath, body, ct));
         }
 
-        private static Task<JsonResponse<TResponse, TResponseError>> PostAsync<TBody, TResponse, TResponseError>(
+        private static Task<JsonResponse<TResponse>> PostAsync<TBody, TResponse>(
+           this IHttpClientAccessor clientAccessor, string clientName, string resourcePath, TBody body, CancellationToken ct)
+        {
+            return clientAccessor.CreateClientAndSendRequest(
+                clientName, client => HttpClientJsonExtensions.PostAsJson<TBody, TResponse>(client, resourcePath, body, ct));
+        }
+
+        private static Task<JsonResponseOrError<TResponse, TResponseError>> PostAsync<TBody, TResponse, TResponseError>(
             this IHttpClientAccessor clientAccessor, string clientName, string resourcePath, TBody body, CancellationToken ct)
         {
             return clientAccessor.CreateClientAndSendRequest(
-                clientName, client => HttpClientJsonExtensions.PostAsJsonAsync<TBody, TResponse, TResponseError>(client, resourcePath, body, ct));
+                clientName, client => HttpClientJsonExtensions.PostAsJsonExpectError<TBody, TResponse, TResponseError>(client, resourcePath, body, ct));
         }
 
         //private static Task<HttpResponseMessage> PutAsync<TBody>(this IHttpClientAccessor clientAccessor, string clientName, string resourcePath, TBody body, CancellationToken ct) =>

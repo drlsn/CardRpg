@@ -5,7 +5,6 @@ using Core.Net.Http;
 using Core.Security;
 using Core.Unity.Storage;
 using Firebase.Auth;
-using GooglePlayGames;
 using System;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -17,8 +16,8 @@ namespace Core.Unity.Auth
     {
         private const string AccessTokenKey = "access-token";
 
-        public string UserId => PlayGamesPlatform.Instance.GetUserId();
-        public string UserName => PlayGamesPlatform.Instance.GetUserDisplayName();
+        public string UserId => "";
+        public string UserName => "";
 
         private string _accessToken;
 
@@ -70,6 +69,16 @@ namespace Core.Unity.Auth
                 return Result.Failure("Invalid credentials");
 
             try {
+                var signUpResult = await _client.PostAsJsonExpectError<SignInRequest, SignInResponse, SignInResponseErrorDetails>(
+                    resourcePath: $"/v1/accounts:signUp?key={_apiKey}",
+                    body: new(Email, Password),
+                    ct: default);
+
+                if (signUpResult.Error.Errors.IsNullOrEmpty())
+                {
+                    return SetAccessToken(signUpResult.Body.IdToken);
+                }
+
                 var signInResult = await _client.PostAsJsonExpectError<SignInRequest, SignInResponse, SignInResponseErrorDetails>(
                     resourcePath: $"/v1/accounts:signInWithPassword?key={_apiKey}",
                     body: new(Email, Password),
@@ -81,18 +90,23 @@ namespace Core.Unity.Auth
                 if (!signInResult.Response.StatusCode.IsSuccess())
                     return Result.Failure("Could not sign in");
 
-                _accessToken = signInResult.Body.IdToken;
-                if (_accessToken.IsNullOrEmpty())
-                    return Result.Failure("Id token is empty");
+                return SetAccessToken(signInResult.Body.IdToken);
 
-                SecurePlayerPrefs.SetString(AccessTokenKey, _accessToken);
+                Result SetAccessToken(string token)
+                {
+                    _accessToken = token;
+                    if (_accessToken.IsNullOrEmpty())
+                        return Result.Failure("Id token is empty");
+
+                    SecurePlayerPrefs.SetString(AccessTokenKey, _accessToken);
+
+                    return Result.Success();
+                }
             }
             catch (Exception ex)
             {
                 return Result.Failure(ex.Message);
             }
-
-            return Result.Success();
         }
 
         record SignInRequest(string email, string password, bool returnSecureToken = true);

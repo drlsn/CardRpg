@@ -1,4 +1,6 @@
-﻿using Core.Auth;
+﻿#if UNITY_ANDROID
+
+using Core.Auth;
 using Core.Basic;
 using Core.Collections;
 using Core.Security;
@@ -130,3 +132,5 @@ namespace Core.Unity.Auth
         }
     }
 }
+
+#endif

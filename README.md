@@ -33,8 +33,6 @@
   -p 5166:8080 ^
   -d netspie/trinica:latest
   ```
-- (optional) To allow testing on a mobile device, you must host server on local network
+- (optional) To allow testing on a mobile device, so it can connect to the server you must open port on which the server container was run
   - Open port 5166, ex. on Windows https://ec.europa.eu/digital-building-blocks/sites/display/CEKB/How+to+open+a+port+on+the+firewall
-  - Open actual server project - \trinica-net-server\src\Trinica.sln
-  - In /trinica-net-server/src/Trinica.Api/Properties/launchSettings.json add your http://<your-local-ip>:5166 address to proper section
 - Run project in Unity (Play), Sign In/Sign Up or build and run for android

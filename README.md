@@ -25,8 +25,8 @@
   docker volume create trinica-db-1
   docker volume create trinica-db-2
   docker network create trinica-db
-  docker run --name trinica-db-1 -d -p 27018:27017 -v trinica-db-1:/data/db --net=my-mongo-cluster mongo --replSet rs
-  docker run --name trinica-db-2 -d -v trinica-db-2:/data/db --net=my-mongo-cluster mongo --replSet rs
+  docker run --name trinica-db-1 -d -p 27018:27017 -v trinica-db-1:/data/db --net=trinica-db mongo --replSet rs
+  docker run --name trinica-db-2 -d -v trinica-db-2:/data/db --net=trinica-db mongo --replSet rs
   docker exec -it trinica-db-1 mongosh
   rs.initiate({
   	_id: "rs",

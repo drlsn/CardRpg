@@ -19,8 +19,7 @@
   - Provide password (secret)
 - Run server locally
   - By Docker - Install docker
-  - Execute commands from command window
-  &nbsp; &nbsp; 
+  - Execute commands from command window to run mongo db
   ```
   docker volume create trinica-db-1
   docker volume create trinica-db-2
@@ -37,10 +36,13 @@
   })
   rs.status()
   exit
-
-  docker pull netspie/trinica:latest  
+  ```
+  - Run server
+  ```
+  docker pull netspie/trinica:latest
   docker run ^
-  -e "TrinicaDatabaseConn=mongodb://localhost:27018" ^
+  --net=trinica-db ^
+  -e "TrinicaDatabaseConn=mongodb://trinica-db-1:27017?directConnection=true" ^
   -e "ASPNETCORE_ENVIRONMENT=Development" ^
   -p 5166:8080 ^
   -d netspie/trinica:latest

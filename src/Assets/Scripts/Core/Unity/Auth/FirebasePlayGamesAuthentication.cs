@@ -46,6 +46,7 @@ namespace Core.Unity.Auth
             if (!_accessToken.IsNullOrEmpty() && Jwt.ValidateAndDecodeToken(_accessToken))
                 return result.With(_accessToken);
 
+            SecurePlayerPrefs.DeleteKey(AccessTokenKey);
             var signInResult = await SignIn();
             if (!signInResult.IsSuccess)
                 return result.Fail(signInResult.Message);

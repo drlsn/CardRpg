@@ -11,7 +11,7 @@ namespace Core.Net.Http
     public static class HttpClientJsonExtensions
     {
         public static async Task<JsonResponseOrError<TResponseBody, TResponseError>> PostAsJsonExpectError<TRequestBody, TResponseBody, TResponseError>(
-            this HttpClient client, string resourcePath, TRequestBody body, CancellationToken ct)
+            this HttpClient client, string resourcePath, TRequestBody body, CancellationToken ct = default)
         {
             var jsonBody = JsonConvert.SerializeObject(body);
             var response = await client.PostAsync(resourcePath, new StringContent(jsonBody, Encoding.UTF8, "application/json"), ct);
@@ -26,7 +26,7 @@ namespace Core.Net.Http
         }
 
         public static async Task<JsonResponseOrError<TResponseError>> PostAsJsonExpectError<TRequestBody, TResponseError>(
-            this HttpClient client, string resourcePath, TRequestBody body, CancellationToken ct)
+            this HttpClient client, string resourcePath, TRequestBody body, CancellationToken ct = default)
         {
             var jsonBody = JsonConvert.SerializeObject(body);
             var response = await client.PostAsync(resourcePath, new StringContent(jsonBody, Encoding.UTF8, "application/json"), ct);
@@ -40,7 +40,7 @@ namespace Core.Net.Http
         }
 
         public static async Task<JsonResponse<TResponse>> PostAsJson<TRequestBody, TResponse>(
-            this HttpClient client, string resourcePath, TRequestBody body, CancellationToken ct)
+            this HttpClient client, string resourcePath, TRequestBody body, CancellationToken ct = default)
         {
             var jsonBody = JsonConvert.SerializeObject(body);
             var response = await client.PostAsync(resourcePath, new StringContent(jsonBody, Encoding.UTF8, "application/json"), ct);
@@ -54,7 +54,7 @@ namespace Core.Net.Http
         }
 
         public static async Task<HttpResponseMessage> PostAsJson<TRequestBody>(
-            this HttpClient client, string resourcePath, TRequestBody body, CancellationToken ct)
+            this HttpClient client, string resourcePath, TRequestBody body, CancellationToken ct = default)
         {
             var jsonBody = JsonConvert.SerializeObject(body);
             var response = await client.PostAsync(resourcePath, new StringContent(jsonBody, Encoding.UTF8, "application/json"), ct);
@@ -62,8 +62,14 @@ namespace Core.Net.Http
             return response;
         }
 
+        public static async Task<HttpResponseMessage> Post(
+            this HttpClient client, string resourcePath, CancellationToken ct = default)
+        {
+            return await client.PostAsync(resourcePath, new StringContent("", Encoding.UTF8, "application/json"), ct);
+        }
+
         public static async Task<JsonResponseOrError<TResponseBody, TResponseError>> GetAsJson<TRequestBody, TResponseBody, TResponseError>(
-            this HttpClient client, TRequestBody body, string resourcePath, CancellationToken ct)
+            this HttpClient client, TRequestBody body, string resourcePath, CancellationToken ct = default)
         {
             var jsonBody = JsonConvert.SerializeObject(body);
             var response = await client.PostAsync(resourcePath, new StringContent(jsonBody, Encoding.UTF8, "application/json"), ct);

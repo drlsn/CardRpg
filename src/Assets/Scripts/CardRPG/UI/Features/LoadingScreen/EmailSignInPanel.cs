@@ -25,7 +25,7 @@ namespace CardRPG.UI.Features.LoadingScreen
 
         private void Start()
         {
-            var emailAuth = _authentication as FirebaseEmailAuthentication;
+            var emailAuth = (_authentication as CustomServerAuthentication).ProviderAuthentication as FirebaseEmailAuthentication;
             
             _signInButton.onClick.AddListener(async () => {
                 emailAuth.Email = _emailInput.text;

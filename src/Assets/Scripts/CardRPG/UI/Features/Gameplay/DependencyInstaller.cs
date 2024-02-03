@@ -2,31 +2,41 @@
 using Core.Net.Http;
 using Core.Unity.Auth;
 using System;
+using UnityEngine;
 using Zenject;
 
 namespace CardRPG.UI.Features.Gameplay
 {
     public class DependencyInstaller : MonoInstaller
     {
+        [SerializeField] private string _gameServerIP = "192.168.178.35";
+        [SerializeField] private int _gameServerPort = 5166;
+
         public override void InstallBindings()
         {
+            var baseAddress = $"http://{_gameServerIP}:{_gameServerPort}";
+
             var httpClientManager = new HttpClientManager();
-            
+            httpClientManager.CreateClient(ClientType.Public);
+            httpClientManager.CreateClient(ClientType.TrinicaPublic, baseAddress);
+            Container.Bind<IHttpClientAccessor>().FromInstance(httpClientManager).AsSingle();
+
             IAuthentication authentication = null;
 #if UNITY_EDITOR || UNITY_STANDALONE
-            authentication = new FirebaseEmailAuthentication(
-                new() { BaseAddress = new Uri("https://identitytoolkit.googleapis.com") }, apiKey: "AIzaSyDz4eKlHC8onnzWU5TzPSYYmhrlPkM6Abc");
+            authentication = new CustomServerAuthentication(
+                new FirebaseEmailAuthentication(
+                    new() { BaseAddress = new Uri("https://identitytoolkit.googleapis.com") }, apiKey: "AIzaSyDz4eKlHC8onnzWU5TzPSYYmhrlPkM6Abc"),
+                httpClientManager,
+                ClientType.TrinicaAuthorized);
 #elif UNITY_ANDROID
-            authentication = new FirebasePlayGamesAuthentication();
+            authentication = new CustomServerAuthentication(
+                new FirebasePlayGamesAuthentication(),
+                httpClientManager,
+                ClientType.TrinicaAuthorized);
 #endif
             Container.Bind<IAuthentication>().FromInstance(authentication).AsSingle();
 
-            var baseAddress = "http://192.168.178.35:5166";
-            //var baseAddress = "localhost:5166";
-            httpClientManager.CreateClient("public");
-            httpClientManager.CreateClient("trinica-public", baseAddress);
-            httpClientManager.CreateClient("trinica-authorized", baseAddress, new AuthorizationMessageHandler(authentication));
-            Container.Bind<IHttpClientAccessor>().FromInstance(httpClientManager).AsSingle();
+            httpClientManager.CreateClient(ClientType.TrinicaAuthorized, baseAddress, new AuthorizationMessageHandler(authentication));
         }
     }
 }

@@ -48,6 +48,7 @@ namespace Core.Unity.Auth
             if (!_accessToken.IsNullOrEmpty() && Jwt.ValidateAndDecodeToken(_accessToken))
                 return result.With(_accessToken);
 
+            SecurePlayerPrefs.DeleteKey(AccessTokenKey);
             if (IsNotValidCredentials())
                 return result.Fail("Bad credentials");
 
@@ -77,23 +78,23 @@ namespace Core.Unity.Auth
                 return Result.Failure("Invalid credentials");
 
             try {
-                var signUpResult = await _client.PostAsJsonExpectError<SignInRequest, SignInResponse, SignInResponseErrorDetails>(
+                var signUpResult = await _client.PostAsJsonExpectError<SignInRequest, SignInResponse, SignInResponseErrorTopmost>(
                     resourcePath: $"/v1/accounts:signUp?key={_apiKey}",
                     body: new(Email, Password),
                     ct: default);
 
-                if (signUpResult.Error.Errors.IsNullOrEmpty())
+                if (signUpResult.Error.Error.Errors.IsNullOrEmpty())
                 {
                     return SetAccessToken(signUpResult.Body.IdToken);
                 }
 
-                var signInResult = await _client.PostAsJsonExpectError<SignInRequest, SignInResponse, SignInResponseErrorDetails>(
+                var signInResult = await _client.PostAsJsonExpectError<SignInRequest, SignInResponse, SignInResponseErrorTopmost>(
                     resourcePath: $"/v1/accounts:signInWithPassword?key={_apiKey}",
                     body: new(Email, Password),
                     ct: default);
 
-                if (!signInResult.Error.Errors.IsNullOrEmpty())
-                    return Result.Failure(signInResult.Error.Message);
+                if (signInResult.Error?.Error is not null && !signInResult.Error.Error.Errors.IsNullOrEmpty())
+                    return Result.Failure(signInResult.Error.Error.Message);
 
                 if (!signInResult.Response.StatusCode.IsSuccess())
                     return Result.Failure("Could not sign in");
@@ -117,7 +118,10 @@ namespace Core.Unity.Auth
             }
         }
 
+        [Serializable]
         record SignInRequest(string email, string password, bool returnSecureToken = true);
+
+        [Serializable]
         record SignInResponse(
             string Kind,
             string LocalId,
@@ -129,6 +133,7 @@ namespace Core.Unity.Auth
             int ExpiresIn
         );
 
+        public record SignInResponseErrorTopmost(SignInResponseErrorDetails Error);
         public record SignInResponseErrorDetails(int Code, string Message, SignInResponseError[] Errors);
 
         public record SignInResponseError(string Message, string Domain, string Reason);

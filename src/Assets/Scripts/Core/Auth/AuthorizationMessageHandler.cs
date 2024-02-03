@@ -18,6 +18,7 @@ namespace Core.Auth
         public AuthorizationMessageHandler(IAuthentication authentication)
         {
             _authentication = authentication;
+            InnerHandler = new HttpClientHandler();
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
@@ -29,6 +30,7 @@ namespace Core.Auth
                 if (getTokenResult is null || !getTokenResult.IsSuccess || getTokenResult.Value.IsNullOrEmpty())
                     throw new NoAccessTokenAvailableException("Authorization token couldn't be obtained.");
 
+                _token = getTokenResult.Value;
                 _cachedHeader = new AuthenticationHeaderValue("Bearer", _token);
             }
 

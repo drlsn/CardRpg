@@ -19,22 +19,34 @@
   - Provide password (secret)
 - Run server locally
   - By Docker - Install docker
-  - Execute commands from command window
-  &nbsp; &nbsp; 
+  - Execute commands from command window to run mongo db
   ```
-  docker pull mongo:latest
-  docker volume create mongodata
-  docker run -v mongodata:/data/db -p 27018:27017 -d --name trinica-db mongo:latest 
-  
-  docker pull netspie/trinica:latest  
+  docker volume create trinica-db-1
+  docker volume create trinica-db-2
+  docker network create trinica-db
+  docker run --name trinica-db-1 -d -p 27018:27017 -v trinica-db-1:/data/db --net=trinica-db mongo --replSet rs
+  docker run --name trinica-db-2 -d -v trinica-db-2:/data/db --net=trinica-db mongo --replSet rs
+  docker exec -it trinica-db-1 mongosh
+  rs.initiate({
+  	_id: "rs",
+  	members: [
+  		{ _id: 0, host: "trinica-db-1" },
+  		{ _id: 1, host: "trinica-db-2" }
+  	]
+  })
+  rs.status()
+  exit
+  ```
+  - Run server
+  ```
+  docker pull netspie/trinica:latest
   docker run ^
-  -e "TrinicaDatabaseConn=mongodb://localhost:27018" ^
+  --net=trinica-db ^
+  -e "TrinicaDatabaseConn=mongodb://trinica-db-1:27017?directConnection=true" ^
   -e "ASPNETCORE_ENVIRONMENT=Development" ^
   -p 5166:8080 ^
   -d netspie/trinica:latest
   ```
-- (optional) To allow testing on a mobile device, you must host server on local network
+- (optional) To allow testing on a mobile device, so it can connect to the server you must open port on which the server container was run
   - Open port 5166, ex. on Windows https://ec.europa.eu/digital-building-blocks/sites/display/CEKB/How+to+open+a+port+on+the+firewall
-  - Open actual server project - \trinica-net-server\src\Trinica.sln
-  - In /trinica-net-server/src/Trinica.Api/Properties/launchSettings.json add your http://<your-local-ip>:5166 address to proper section
 - Run project in Unity (Play), Sign In/Sign Up or build and run for android

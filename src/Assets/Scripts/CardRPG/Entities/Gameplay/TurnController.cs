@@ -62,7 +62,7 @@ namespace CardRPG.Entities.Gameplay
                 return result;
 
            if (!SetActionDone(playerId))
-                return result.Fail();
+                return result.Fail("");
 
             return result;
         }

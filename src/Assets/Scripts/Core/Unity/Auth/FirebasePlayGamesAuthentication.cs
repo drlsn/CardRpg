@@ -32,22 +32,29 @@ namespace Core.Unity.Auth
 
         private bool _firebaseInitialized;
 
-        public async Task<string> GetAccessToken()
+        public async Task<Result<string>> GetAccessToken()
         {
+            var result = Result<string>.Success();
+
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+                return result.Fail("No internet connection");
+
             if (_accessToken is not null && Jwt.ValidateAndDecodeToken(_accessToken))
-                return _accessToken;
+                return result.With(_accessToken);
 
             _accessToken = SecurePlayerPrefs.GetString(AccessTokenKey);
             if (!_accessToken.IsNullOrEmpty() && Jwt.ValidateAndDecodeToken(_accessToken))
-                return _accessToken;
+                return result.With(_accessToken);
 
-            await SignIn();
+            var signInResult = await SignIn();
+            if (!signInResult.IsSuccess)
+                return result.Fail(signInResult.Message);
 
             _accessToken = await FirebaseAuth.DefaultInstance.CurrentUser.TokenAsync(forceRefresh: true);
             if (_accessToken is not null)
                 SecurePlayerPrefs.SetString(AccessTokenKey, _accessToken);
 
-            return _accessToken;
+            return result.With(_accessToken);
         }
 
         private async void OnFirebaseAuthChanged(object sender, EventArgs args)

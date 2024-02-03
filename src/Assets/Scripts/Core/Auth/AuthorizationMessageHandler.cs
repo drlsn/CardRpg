@@ -25,8 +25,8 @@ namespace Core.Auth
         {
             if (_token == null || !Jwt.ValidateAndDecodeToken(_token))
             {
-                _token = await _authentication.GetAccessToken();
-                if (_token.IsNullOrEmpty())
+                var getTokenResult = await _authentication.GetAccessToken();
+                if (getTokenResult is null || !getTokenResult.IsSuccess || getTokenResult.Value.IsNullOrEmpty())
                     throw new NoAccessTokenAvailableException("Authorization token couldn't be obtained.");
 
                 _cachedHeader = new AuthenticationHeaderValue("Bearer", _token);

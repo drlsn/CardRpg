@@ -5,7 +5,7 @@ namespace Core.Auth
 {
     public interface IAuthentication
     {
-        Task<string> GetAccessToken();
+        Task<Result<string>> GetAccessToken();
         Task<Result> SignIn();
 
         string UserId { get; }

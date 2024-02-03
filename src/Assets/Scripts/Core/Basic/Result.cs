@@ -20,9 +20,17 @@
 
         public static implicit operator Result(bool isSuccess) => new Result(isSuccess);
 
-        public Result Fail()
+        public Result Fail(string message)
         {
             IsSuccess = false;
+            Message = message;
+
+            return this;
+        }
+
+        public Result With(object @object)
+        {
+            ValueObject = @object;
             return this;
         }
     }
@@ -40,9 +48,16 @@
         public static implicit operator Result<T>(bool isSuccess) => new Result<T>(isSuccess);
         public static implicit operator Result<T>(T value) => new Result<T>(true, value);
 
-        public new Result<T> Fail()
+        public new Result<T> Fail(string message)
         {
             IsSuccess = false;
+            Message = message;
+            return this;
+        }
+
+        public new Result<T> With(object @object)
+        {
+            ValueObject = @object;
             return this;
         }
     }

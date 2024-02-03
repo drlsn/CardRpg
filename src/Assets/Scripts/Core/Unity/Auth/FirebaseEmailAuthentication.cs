@@ -9,6 +9,7 @@ using System;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Core.Unity.Auth
 {
@@ -33,25 +34,32 @@ namespace Core.Unity.Auth
             _apiKey = apiKey;
         }
 
-        public async Task<string> GetAccessToken()
+        public async Task<Result<string>> GetAccessToken()
         {
+            var result = Result<string>.Success();
+
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+                return result.Fail("No internet connection");
+
             if (!_accessToken.IsNullOrEmpty() && Jwt.ValidateAndDecodeToken(_accessToken))
-                return _accessToken;
+                return result.With(_accessToken);
 
             _accessToken = SecurePlayerPrefs.GetString(AccessTokenKey);
             if (!_accessToken.IsNullOrEmpty() && Jwt.ValidateAndDecodeToken(_accessToken))
-                return _accessToken;
+                return result.With(_accessToken);
 
             if (IsNotValidCredentials())
-                return null;
+                return result.Fail("Bad credentials");
 
-            await SignIn();
+            var signInResult = await SignIn();
+            if (!signInResult.IsSuccess)
+                return result.Fail(signInResult.Message);
 
             _accessToken = await FirebaseAuth.DefaultInstance.CurrentUser.TokenAsync(forceRefresh: true);
             if (!_accessToken.IsNullOrEmpty())
                 SecurePlayerPrefs.SetString(AccessTokenKey, _accessToken);
 
-            return _accessToken;
+            return result.With(_accessToken);
         }
 
         static bool IsValidEmail(string email) =>

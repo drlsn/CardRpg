@@ -35,7 +35,7 @@
   	]
   })
   rs.status()
-  exit
+  quit
   ```
   - Run server
   ```

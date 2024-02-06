@@ -1,6 +1,5 @@
-﻿using Core.Auth;
-using Core.Collections;
-using Core.Unity.Storage;
+﻿using CardRPG.UI.GUICommands;
+using Core.Auth;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -19,7 +18,7 @@ namespace CardRPG.UI.Features.LoadingScreen
 
         [Inject] private IAuthentication _authentication;
 
-        private async void Awake()
+        public async Task Reauthenticate()
         {
             _idpSignInPanel.SetActive(false);
             _emailSignInPanel.gameObject.SetActive(false);
@@ -36,6 +35,7 @@ namespace CardRPG.UI.Features.LoadingScreen
 
 #if UNITY_EDITOR || UNITY_STANDALONE
             _emailSignInPanel.gameObject.SetActive(true);
+            _emailSignInPanel.Init();
             _idpSignInPanel.SetActive(false);
 #elif UNITY_ANDROID
             _emailSignInPanel.gameObject.SetActive(false);
@@ -58,11 +58,12 @@ namespace CardRPG.UI.Features.LoadingScreen
             _emailSignInPanel.gameObject.SetActive(false);
             _idpSignInPanel.SetActive(false);
 
-            var result = await _authentication.SignIn();
+            var result = await _authentication.SignIn(); 
             if (result.IsSuccess)
             {
                 _msgText.text = "Sign In Success";
-                SceneManager.LoadScene("Menu");
+                if (!await GameObject.FindObjectOfType<GoToMenuGUICommand>().Execute())
+                    _msgText.text = "Sign In Failed";
             }
             else
                 _msgText.text = result.Message;

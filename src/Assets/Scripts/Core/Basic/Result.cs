@@ -1,64 +1,82 @@
-﻿namespace Core.Basic
+﻿using Core.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.Assertions;
+
+namespace Core.Basic
 {
     public class Result
     {
-        public static Result Success() => new Result(true);
-        public static Result Success(object value) => new Result(true, value);
-        public static Result Failure() => new Result(false);
-        public static Result Failure(string message) => new Result(false, message: message);
+        public static Result Success() => new Result();
+        public static Result Failure(string message) => new Result(message);
 
-        protected Result(bool isSuccess, object value = null, string message = null)
+        protected readonly List<Message> _messages = new();
+
+        public bool IsSuccess => !_messages.ContainsErrors();
+
+        public Message[] Messages => _messages.ToArray();
+        public string Message => _messages.Select(m => m.Content).AggregateOrEmpty((x, y) => $"{x}. {y}", string.Empty);
+
+        protected Result(string message = null)
         {
-            IsSuccess = isSuccess;
-            ValueObject = value;
-            Message = message;
+            if (message is not null)
+            {
+                Assert.IsFalse(message.IsNullOrEmpty());
+                Fail(message);
+            }
+
         }
 
-        public bool IsSuccess { get; protected set; }
-        public object ValueObject { get; protected set; }
-        public string Message { get; protected set; }
-
-        public static implicit operator Result(bool isSuccess) => new Result(isSuccess);
-
-        public Result Fail(string message)
+        public Result Fail(string errorMessage)
         {
-            IsSuccess = false;
-            Message = message;
-
-            return this;
-        }
-
-        public Result With(object @object)
-        {
-            ValueObject = @object;
+            _messages.Add(new Message(MessageLevel.Error, errorMessage));
             return this;
         }
     }
 
     public class Result<T> : Result
     {
-        public static new Result<T> Success() => new Result<T>(true);
-        public static Result<T> Success(T value) => new Result<T>(true, value);
-        public static new Result<T> Failure() => new Result<T>(false);
+        public static new Result<T> Success() => new Result<T>();
+        public static Result<T> Success(T value) => new Result<T>(value);
+        public static new Result<T> Failure(string message) => new Result<T>(message);
+        
+        public Result(T value = default) => Value = value;
+        public Result(string message) : base(message) {}
 
-        public Result(bool isSuccess, T value = default) : base(isSuccess, value) {}
-
-        public T Value => (T) ValueObject;
-
-        public static implicit operator Result<T>(bool isSuccess) => new Result<T>(isSuccess);
-        public static implicit operator Result<T>(T value) => new Result<T>(true, value);
+        public T Value { get; private set; }
 
         public new Result<T> Fail(string message)
         {
-            IsSuccess = false;
-            Message = message;
+            _messages.Add(new Message(MessageLevel.Error, message));
             return this;
         }
 
-        public new Result<T> With(object @object)
+        public new Result<T> Fail(IEnumerable<Message> messages)
         {
-            ValueObject = @object;
+            _messages.AddRange(messages);
             return this;
         }
+
+        public new Result<T> With(T value)
+        {
+            Value = value;
+            return this;
+        }
+
+        public static implicit operator Result<T>(string errorMessage) => new(errorMessage);
+    }
+
+    public record Message(MessageLevel Level, string Content);
+    public record MessageLevel(string name)
+    {
+        public static readonly MessageLevel Info = new("info");
+        public static readonly MessageLevel Warning = new("warning");
+        public static readonly MessageLevel Error = new("error");
+    }
+
+    public static class MessageExtensions
+    {
+        public static bool ContainsErrors(this IEnumerable<Message> messages) =>
+            messages.Any(m => m.Level == MessageLevel.Error);
     }
 }

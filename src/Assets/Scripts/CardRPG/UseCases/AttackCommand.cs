@@ -11,7 +11,7 @@ namespace CardRPG.UseCases
         {
             var game = StartRandomGameCommandHandler.Game;
             if (game is null)
-                return false;
+                return Result<IDomainEvent[]>.Failure("The game was not started");
 
             var result = game.Attack(
                 new UserId(cmd.AttackerId),

@@ -2,7 +2,6 @@
 using Core.Basic;
 using Core.Net.Http;
 using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Core.Unity.Auth
@@ -43,7 +42,6 @@ namespace Core.Unity.Auth
             try
             {
                 var client = _clientAccessor.Get(_clientName);
-                client.Timeout = TimeSpan.FromSeconds(2);
                 var createUserResponse = await client.Post("/api/v1/users");
                 if (!createUserResponse.IsSuccessStatusCode)
                     return Result.Failure("Create user failed");

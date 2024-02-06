@@ -1,17 +1,28 @@
-using CardRPG.UI.Features.IOs;
+using CardRPG.UI.Features.Gameplay;
+using CardRPG.UseCases.Users;
+using Core.Net.Http;
+using Corelibs.BlazorShared;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Zenject;
 
 namespace CardRPG.UI.GUICommands
 {
     public class GoToMenuGUICommand : MonoBehaviour
     {
-        [SerializeField] private BoardIO _boardIO;
+        [Inject] private IHttpClientAccessor _clientAccessor;
 
-        public void Execute()
+        public async Task<bool> Execute()
         {
-            _boardIO.Destroy();
-            SceneManager.LoadScene(0);
+            var result = await _clientAccessor.GetAsync<GetUserQueryResponse>(ClientType.TrinicaAuthorized, "api/v1/users/me");
+            if (result is not null)
+            {
+                SceneManager.LoadScene("Menu");
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Core.Auth;
+﻿using CardRPG.UI.GUICommands;
+using Core.Auth;
 using Core.Collections;
 using Core.Unity.Auth;
 using Core.Unity.Storage;
@@ -23,7 +24,7 @@ namespace CardRPG.UI.Features.LoadingScreen
 
         [Inject] private IAuthentication _authentication;
 
-        private void Start()
+        public void Init()
         {
             var emailAuth = (_authentication as CustomServerAuthentication).ProviderAuthentication as FirebaseEmailAuthentication;
             
@@ -38,7 +39,8 @@ namespace CardRPG.UI.Features.LoadingScreen
                     SecurePlayerPrefs.SetString(PasswordKey, emailAuth.Password);
 
                     _msgText.text = "Sign In Success";
-                    SceneManager.LoadScene("Menu");
+                    if (!await GameObject.FindObjectOfType<GoToMenuGUICommand>().Execute())
+                        _msgText.text = "Sign In Failed";
                 }
                 else
                     _msgText.text = result.Message;

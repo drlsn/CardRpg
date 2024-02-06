@@ -49,7 +49,7 @@ namespace Core.Unity.Auth
             SecurePlayerPrefs.DeleteKey(AccessTokenKey);
             var signInResult = await SignIn();
             if (!signInResult.IsSuccess)
-                return result.Fail(signInResult.Message);
+                return result.Fail(signInResult.Messages);
 
             _accessToken = await FirebaseAuth.DefaultInstance.CurrentUser.TokenAsync(forceRefresh: true);
             if (_accessToken is not null)

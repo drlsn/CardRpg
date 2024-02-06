@@ -55,15 +55,16 @@ namespace CardRPG.Entities.Gameplay
                     IsGameOver = true;
                 }
 
-                return events.ToArray();
+                return new Result<IDomainEvent[]>(events.ToArray());
             });
 
         public Result<IDomainEvent[]> Try(UserId playerId, Func<Player, Result<IDomainEvent[]>> action) =>
-            TurnController.TryPerformTurn(playerId, player => IsGameOver ? false : action(player));
+            TurnController.TryPerformTurn(playerId, player => 
+                IsGameOver ? Result<IDomainEvent[]>.Failure("Game is over") : action(player));
 
         public Result<IDomainEvent[]> Try(UserId playerId, Func<Player, Player, Result<IDomainEvent[]>> action) =>
             TurnController.TryPerformTurn(playerId, (thisPlayer, otherPlayer) => 
-                IsGameOver ? false : action(thisPlayer, otherPlayer));
+                IsGameOver ? Result<IDomainEvent[]>.Failure("Game is over") : action(thisPlayer, otherPlayer));
     }
 
     public class GameId : EntityId { public GameId(string value) : base(value) { } }

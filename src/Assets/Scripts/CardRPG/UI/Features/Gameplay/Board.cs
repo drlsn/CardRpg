@@ -79,7 +79,7 @@ namespace CardRPG.UI.Gameplay
             if (Input.GetKeyDown(KeyCode.Escape))
                 _dialogTree.Any()
                     .IfTrue(_dialogTree.Back)
-                    .IfFalse(FindObjectOfType<GoToMenuGUICommand>().Execute);
+                    .IfFalse(async () => await FindObjectOfType<GoToMenuGUICommand>().Execute());
         }
 
         private void OnEnemyCardTakenToHandEvent(EnemyCardTakenToHandEvent ev)

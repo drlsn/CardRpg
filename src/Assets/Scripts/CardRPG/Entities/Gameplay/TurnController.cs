@@ -53,7 +53,7 @@ namespace CardRPG.Entities.Gameplay
         public Result<IDomainEvent[]> TryPerformTurn(UserId playerId, Func<Player, Result<IDomainEvent[]>> action)
         {
             if (!CanDo(playerId))
-                return false;
+                return Result<IDomainEvent[]>.Failure("It's not the turn of the specified player");
 
             var player = Players.OfId(playerId);
 

@@ -39,7 +39,7 @@ namespace Core.Unity.Auth
             var result = Result<string>.Success();
 
             if (Application.internetReachability == NetworkReachability.NotReachable)
-                return result.Fail("No internet connection");
+                return "No internet connection";
 
             if (!_accessToken.IsNullOrEmpty() && Jwt.ValidateAndDecodeToken(_accessToken))
                 return result.With(_accessToken);
@@ -54,7 +54,7 @@ namespace Core.Unity.Auth
 
             var signInResult = await SignIn();
             if (!signInResult.IsSuccess)
-                return result.Fail(signInResult.Message);
+                return result.Fail(signInResult.Messages);
 
             _accessToken = await FirebaseAuth.DefaultInstance.CurrentUser.TokenAsync(forceRefresh: true);
             if (!_accessToken.IsNullOrEmpty())

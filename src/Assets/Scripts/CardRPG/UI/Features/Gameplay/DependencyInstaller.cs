@@ -2,6 +2,7 @@
 using Core.Net.Http;
 using Core.Unity.Auth;
 using System;
+using System.Net;
 using UnityEngine;
 using Zenject;
 
@@ -14,6 +15,8 @@ namespace CardRPG.UI.Features.Gameplay
 
         public override void InstallBindings()
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
             var baseAddress = $"http://{_gameServerIP}:{_gameServerPort}";
 
             var httpClientManager = new HttpClientManager();

@@ -198,6 +198,13 @@ namespace Corelibs.BlazorShared
                 clientName, client => HttpClientJsonExtensions.PostAsJsonExpectError<TBody, TResponse, TResponseError>(client, resourcePath, body, ct));
         }
 
+        public static Task<JsonResponse<TResponse>> GetAsync<TResponse>(
+           this IHttpClientAccessor clientAccessor, string clientName, string resourcePath, CancellationToken ct = default)
+        {
+            return clientAccessor.CreateClientAndSendRequest(
+                clientName, client => HttpClientJsonExtensions.Get<TResponse>(client, resourcePath, ct));
+        }
+
         //private static Task<HttpResponseMessage> PutAsync<TBody>(this IHttpClientAccessor clientAccessor, string clientName, string resourcePath, TBody body, CancellationToken ct) =>
         //    clientAccessor.CreateClientAndSendRequest(clientName, client => HttpClientJsonExtensions.PutAsJsonAsync(client, resourcePath, body, ct));
 

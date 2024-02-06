@@ -68,18 +68,16 @@ namespace Core.Net.Http
             return await client.PostAsync(resourcePath, new StringContent("", Encoding.UTF8, "application/json"), ct);
         }
 
-        public static async Task<JsonResponseOrError<TResponseBody, TResponseError>> GetAsJson<TRequestBody, TResponseBody, TResponseError>(
-            this HttpClient client, TRequestBody body, string resourcePath, CancellationToken ct = default)
+        public static async Task<JsonResponse<TResponseBody>> Get<TResponseBody>(
+            this HttpClient client, string resourcePath, CancellationToken ct = default)
         {
-            var jsonBody = JsonConvert.SerializeObject(body);
-            var response = await client.PostAsync(resourcePath, new StringContent(jsonBody, Encoding.UTF8, "application/json"), ct);
+            var response = await client.GetAsync(resourcePath, ct);
 
             var jsonResult = await response.Content.ReadAsStringAsync();
-            return new JsonResponseOrError<TResponseBody, TResponseError>(
+            return new JsonResponse<TResponseBody>(
                 response,
                 BodyString: jsonResult,
-                Body: TryCatch.Run(() => JsonConvert.DeserializeObject<TResponseBody>(jsonResult)),
-                Error: TryCatch.Run(() => JsonConvert.DeserializeObject<TResponseError>(jsonResult))
+                Body: TryCatch.Run(() => JsonConvert.DeserializeObject<TResponseBody>(jsonResult))
             );
         }
     }

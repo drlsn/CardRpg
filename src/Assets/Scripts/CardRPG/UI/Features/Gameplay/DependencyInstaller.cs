@@ -40,6 +40,7 @@ namespace CardRPG.UI.Features.Gameplay
             Container.Bind<IAuthentication>().FromInstance(authentication).AsSingle();
 
             httpClientManager.CreateClient(ClientType.TrinicaAuthorized, baseAddress, new AuthorizationMessageHandler(authentication));
+            httpClientManager.CreateClient(ClientType.TrinicaAuthorizedGameEvents, baseAddress, new AuthorizationMessageHandler(authentication));
         }
     }
 }

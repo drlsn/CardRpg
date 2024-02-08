@@ -1,12 +1,11 @@
 ﻿using Core.Basic;
-using Core.Net.Http;
 using Corelibs.Basic;
 using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Corelibs.BlazorShared
+namespace Core.Net.Http
 {
     public static class HttpRequestExtensions
     {

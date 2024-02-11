@@ -34,6 +34,7 @@
       { _id: 1, host: "trinica-db-2" }
     ]
   })
+  use trinica-db-1
   cfg = rs.conf()
   cfg.members[0].priority = 1
   cfg.members[1].priority = 0.5

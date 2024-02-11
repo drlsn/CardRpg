@@ -28,12 +28,16 @@
   docker run --name trinica-db-2 -d -v trinica-db-2:/data/db --net=trinica-db mongo --replSet rs
   docker exec -it trinica-db-1 mongosh
   rs.initiate({
-  	_id: "rs",
-  	members: [
-  		{ _id: 0, host: "trinica-db-1" },
-  		{ _id: 1, host: "trinica-db-2" }
-  	]
+    _id: "rs",
+    members: [
+      { _id: 0, host: "trinica-db-1" },
+      { _id: 1, host: "trinica-db-2" }
+    ]
   })
+  cfg = rs.conf()
+  cfg.members[0].priority = 1
+  cfg.members[1].priority = 0.5
+  rs.reconfig(cfg, { force: true })
   rs.status()
   quit
   ```

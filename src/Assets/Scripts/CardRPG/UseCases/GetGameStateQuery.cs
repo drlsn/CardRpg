@@ -1,5 +1,6 @@
 ﻿using CardRPG.Entities.Gameplay;
 using CardRPG.Entities.Users;
+using CardRPG.UI.UseCases;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,11 +16,11 @@ namespace CardRPG.UseCases
         }
     }
 
-    public class GetGameStateQuery
+    public class GetGameStateQuery : IQuery<GetGameStateQueryOut>
     {
     }
 
-    public class GetGameStateQueryOut
+    public class GetGameStateQueryOut : IQueryResponse
     {
         public GetGameStateQueryOut(
             UserId playerId,

@@ -1,4 +1,5 @@
 ﻿using CardRPG.Entities.Gameplay;
+using CardRPG.UI.UseCases;
 using Core.Collections;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,3 +27,4 @@ namespace CardRPG.UseCases
     {
     }
 }
+ICommand

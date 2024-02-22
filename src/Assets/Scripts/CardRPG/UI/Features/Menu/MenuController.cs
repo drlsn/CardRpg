@@ -3,7 +3,6 @@ using CardRPG.UseCases.Users;
 using Core.Auth;
 using Core.Collections;
 using Core.Net.Http;
-using PlasticPipe.PlasticProtocol.Messages;
 using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
@@ -17,29 +16,13 @@ namespace CardRPG.UI.Menu
     {
         [SerializeField] private TMP_Text _text;
 
-        [Inject] private IAuthentication _authentication;
         [Inject] private IHttpClientAccessor _clientAccessor;
 
         private GetUserQueryResponse _getUserDTO;
 
-        private BroadcastService _broadcastService;
         private async void Start()
         {
-            var accessTokenResult = await _authentication.GetAccessToken();
-            _broadcastService = new(_clientAccessor, accessTokenResult.Value);
-            Task.Run(async () => await _broadcastService.Do());
-            //await Init();
-        }
-
-        private void Update()
-        {
-            if (_broadcastService.Messages.Count > 0) 
-            {
-                if (_broadcastService.Messages.TryDequeue(out var result))
-                {
-                    Debug.Log(result);
-                }
-            }
+            await Init();
         }
 
         public async Task Init()

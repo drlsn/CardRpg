@@ -1,11 +1,12 @@
 ﻿using CardRPG.Entities.Gameplay;
 using CardRPG.UI.UseCases;
+using CardRPG.UseCases.Games;
 using Common.Unity.Coroutines;
 using Core.Collections;
-using Core.Unity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace CardRPG.UI.Infrastructure
@@ -69,6 +70,24 @@ namespace CardRPG.UI.Infrastructure
         {
             RaiseEvent(new EnemyCardLaidToBattleEvent(
                 new Card(new CardId(Guid.NewGuid().ToString()), Names.GetRandom(), null, -1)));
+        }
+
+        public async Task<TQueryResponse> Query<TQuery, TQueryResponse>()
+            where TQuery : class, IQuery<TQueryResponse>, new()
+            where TQueryResponse : class, IQueryResponse
+        {
+            if (typeof(TQuery) == typeof(GetCurrentGameQuery))
+                return new GetCurrentGameQueryOut(null) as TQueryResponse;
+
+            return null;
+        }
+
+        async Task<TQueryResponse> IGameplayService.Query<TQuery, TQueryResponse>(TQuery query)
+        {
+            if (typeof(TQuery) == typeof(GetCurrentGameQuery))
+                return Query<GetCurrentGameQuery, GetCurrentGameQueryOut>() as TQueryResponse;
+
+            return null;
         }
 
         public static string[] Names = {

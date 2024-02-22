@@ -4,12 +4,13 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
 namespace CardRPG.UI.Features.Gameplay
 {
-    internal class BroadcastService 
+    internal class GameEventsService 
     {
         private readonly string _accessToken;
 
@@ -17,13 +18,13 @@ namespace CardRPG.UI.Features.Gameplay
 
         private readonly IHttpClientAccessor _httpClientAccessor;
 
-        public BroadcastService(IHttpClientAccessor httpClientAccessor, string accessToken)
+        public GameEventsService(IHttpClientAccessor httpClientAccessor, string accessToken)
         {
             _httpClientAccessor = httpClientAccessor;
             _accessToken = accessToken;
         }
 
-        public async Task Do()
+        public async Task Do(CancellationToken ct)
         {
             var clientX = _httpClientAccessor.Get(ClientType.TrinicaAuthorizedGameEvents);
             var client = new HttpClient()
@@ -34,6 +35,9 @@ namespace CardRPG.UI.Features.Gameplay
 
             while (true)
             {
+                if (ct.IsCancellationRequested)
+                    return;
+
                 try
                 {
                     using (var streamReader = new StreamReader(await client.GetStreamAsync("api/v1/games/events")))

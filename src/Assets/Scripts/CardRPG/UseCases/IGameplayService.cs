@@ -23,6 +23,10 @@ namespace CardRPG.UI.UseCases
 
     public interface IEvent {}
     public interface ICommand {}
-    public interface IQuery<TResponse> where TResponse : IQueryResponse {}
+    public interface IQueryHandler<TQuery, TResponse>
+        where TQuery : IQuery<TResponse>
+        where TResponse : IQueryResponse {}
+
+    public interface IQuery<TResponse> where TResponse : IQueryResponse { }
     public interface IQueryResponse {}
 }

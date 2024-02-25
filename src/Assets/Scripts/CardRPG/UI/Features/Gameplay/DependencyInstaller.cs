@@ -1,7 +1,11 @@
-﻿using Core.Auth;
+﻿using CardRPG.Infrastructure;
+using CardRPG.UI.UseCases;
+using CardRPG.UseCases.Games;
+using Core.Auth;
 using Core.Net.Http;
 using Core.Unity.Auth;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using UnityEngine;
 using Zenject;
@@ -41,6 +45,12 @@ namespace CardRPG.UI.Features.Gameplay
 
             httpClientManager.CreateClient(ClientType.TrinicaAuthorized, baseAddress, new AuthorizationMessageHandler(authentication));
             httpClientManager.CreateClient(ClientType.TrinicaAuthorizedGameEvents, baseAddress, new AuthorizationMessageHandler(authentication));
+
+            var uris = new Dictionary<Type, string>() 
+            {
+                { typeof(GetCurrentGameQuery), "api/v1/users/me/game" }
+            };
+            Container.Bind<IGameplayService>().FromInstance(new OnlineGameplayService(httpClientManager, uris)).AsSingle();
         }
     }
 }

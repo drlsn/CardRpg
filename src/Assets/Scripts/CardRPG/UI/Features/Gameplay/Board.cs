@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using Zenject;
 
 namespace CardRPG.UI.Gameplay
 {
@@ -44,21 +45,27 @@ namespace CardRPG.UI.Gameplay
         private Card _enemyDeck;
         [SerializeField] private Card _commonDeck;
 
-        private IGameplayService _gameplayService;
-
         private RectTransform _rt;
 
         [SerializeField] private Image _dialogTreeBg;
         private DialogTree _dialogTree;
 
+        private IGameplayService _gameplayService;
+
         public static Card CardBigInstance { get; private set; }
 
         private ServerStateService _serverStateService = new();
-        public async Task Init(GetGameStateQueryOut dto)
+
+        private void Awake()
+        {
+            Debug.Log("awake"); 
+        }
+
+        public async Task Init(GetGameStateQueryOut dto, IGameplayService gameplayService)
         {
             _rt = this.RT();
 
-            _gameplayService = new OfflineGameplayService(StartCoroutine);
+            _gameplayService = gameplayService;
             _gameplayService.Subscribe<EnemyCardTakenToHandEvent>(OnEnemyCardTakenToHandEvent);
             _gameplayService.Subscribe<EnemyCardLaidToBattleEvent>(OnEnemyCardLaidToBattleEvent);
 

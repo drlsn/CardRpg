@@ -27,4 +27,4 @@ namespace CardRPG.UseCases
     {
     }
 }
-ICommand
+

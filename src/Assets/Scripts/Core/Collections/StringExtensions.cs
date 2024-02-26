@@ -36,5 +36,8 @@ namespace Core.Collections
 
             return str;
         }
+
+        public static string ToCamelCase(this string str) =>
+            string.IsNullOrEmpty(str) ? str : char.ToLowerInvariant(str[0]) + str.Substring(1).Replace("_", "").Replace("-", "");
     }
 }

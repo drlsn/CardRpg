@@ -12,20 +12,24 @@ namespace CardRPG.UI.GUICommands
     public class StartGameGUICommand : MonoBehaviour
     {
         [SerializeField] private BoardIO _boardIO;
-
         [Inject] private IGameplayService _gameplayService;
 
         public async Task Execute()
         {
-            var getCurrentGameQueryOut = await _gameplayService.Query<GetCurrentGameQuery, GetCurrentGameQueryOut>();
+            var currentGame = await _gameplayService.Query<GetCurrentGameQuery, GetCurrentGameQueryOut>();
+            if (currentGame.GameId is null)
+            {
+                if (!await _gameplayService.Send(new StartGameCommand()))
+                    return;
+            }
 
-            await new StartRandomGameCommandHandler().Handle(new StartRandomBotGameCommand());
-            var dto = await new GetGameStateQueryHandler().Handle(new GetGameStateQuery());
+            var gameState = await _gameplayService.Query<GetGameStateQuery, GetGameStateQueryOut>(
+                new GetGameStateQuery(currentGame.GameId));
 
             _boardIO.Instantiate();
             var board = _boardIO.PrefabData.Object.GetComponent<Board>();
 
-            await board.Init(dto, _gameplayService);
+            await board.Init(gameState, _gameplayService);
         }
     }
 }

@@ -6,7 +6,8 @@ namespace CardRPG.UI.UseCases
     public interface IGameplayService
     {
         void Subscribe<TEvent>(Action<TEvent> handler) where TEvent : IEvent;
-        void Send<TCommand>(TCommand command) where TCommand : ICommand;
+        Task<bool> Send<TCommand>() where TCommand : ICommand, new();
+        Task<bool> Send<TCommand>(TCommand command) where TCommand : ICommand;
         Task<TQueryResponse> Query<TQuery, TQueryResponse>()
             where TQueryResponse : class, IQueryResponse
             where TQuery : class, IQuery<TQueryResponse>, new();

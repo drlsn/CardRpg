@@ -90,6 +90,16 @@ namespace CardRPG.UI.Infrastructure
             return null;
         }
 
+        public Task<bool> Send<TCommand>() where TCommand : ICommand, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> IGameplayService.Send<TCommand>(TCommand command)
+        {
+            throw new NotImplementedException();
+        }
+
         public static string[] Names = {
             "Elara Frost",
             "Thorne Shadow",

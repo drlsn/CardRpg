@@ -1,5 +1,6 @@
 ﻿using CardRPG.Infrastructure;
 using CardRPG.UI.UseCases;
+using CardRPG.UseCases;
 using CardRPG.UseCases.Games;
 using Core.Auth;
 using Core.Net.Http;
@@ -48,7 +49,9 @@ namespace CardRPG.UI.Features.Gameplay
 
             var uris = new Dictionary<Type, string>() 
             {
-                { typeof(GetCurrentGameQuery), "api/v1/users/me/game" }
+                { typeof(GetCurrentGameQuery), "api/v1/users/me/game" },
+                { typeof(StartGameCommand), "api/v1/games" },
+                { typeof(GetGameStateQuery), "api/v1/games/{gameId}" },
             };
             Container.Bind<IGameplayService>().FromInstance(new OnlineGameplayService(httpClientManager, uris)).AsSingle();
         }
